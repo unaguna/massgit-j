@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.gitlab.arturbosch.detekt") version("1.23.8")
 }
@@ -21,6 +22,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
     testImplementation(kotlin("test"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 }
