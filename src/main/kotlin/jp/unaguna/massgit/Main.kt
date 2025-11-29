@@ -9,7 +9,7 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
-            val conf = MainConfigurations(mainArgs)
+            val conf = MainConfigurations(mainArgs.mainOptions)
             val repos = Repo.loadFromFile(conf.reposFilePath)
 
             // TODO: massgit 独自サブコマンドの場合の分岐を作る
