@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.printfilter.LineHeadFilter
+import jp.unaguna.massgit.printmanager.PrintManagerStoreAll
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import java.nio.file.Path
 import kotlin.concurrent.thread
@@ -28,7 +29,7 @@ class GitProcessManager(
 
             val processController = ProcessController(
                 process = process,
-                printManager = PrintManagerThrough(
+                printManager = PrintManagerStoreAll(
                     LineHeadFilter("$dirname${repSuffix ?: ": "}")
                 ),
             )
