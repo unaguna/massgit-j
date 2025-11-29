@@ -19,11 +19,13 @@ data class MainArgs(
         }
     }
 
-    class Option(val def: OptionDef) {
-        val args = mutableListOf<String>()
+    interface Option {
+        val def: OptionDef
+        val args: List<String>
+    }
 
-        val argSize: Int
-            get() = args.size
+    class OptionImpl(override val def: OptionDef): Option {
+        override val args = mutableListOf<String>()
 
         fun push(arg: String) {
             args.add(arg)
@@ -35,7 +37,7 @@ data class MainArgs(
          * @return true if the number of arguments is valid or exceeds, or false otherwise.
          */
         fun argsNumberIsSufficient(): Boolean {
-            return def.sufficient(argSize)
+            return def.sufficient(args.size)
         }
     }
 
@@ -53,14 +55,14 @@ data class MainArgs(
     ) : Map<OptionDef, List<Option>> by optionMap, Options {
         constructor() : this(mutableMapOf())
 
-        fun addOption(optionDef: OptionDef): Option {
+        fun addOption(optionDef: OptionDef): OptionImpl {
             val options = optionMap.getOrPut(optionDef) { mutableListOf() }
-            val option = Option(optionDef)
+            val option = OptionImpl(optionDef)
             options.add(option)
             return option
         }
 
-        fun addOption(optionSpec: String): Option {
+        fun addOption(optionSpec: String): OptionImpl {
             val optionParts = optionSpec.split("=", limit = 2)
             val optionName = optionParts[0]
             val optionValue = optionParts.getOrNull(1)
@@ -96,7 +98,7 @@ data class MainArgs(
             var subCommand: String? = null
             val subOptions = mutableListOf<String>()
 
-            var processingOption: Option? = null
+            var processingOption: OptionImpl? = null
             val argsBuffer = ArrayDeque(args)
             while (subCommand == null && argsBuffer.isNotEmpty()) {
                 // Determine whether optional arguments continue
