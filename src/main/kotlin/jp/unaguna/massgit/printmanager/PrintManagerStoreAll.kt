@@ -14,7 +14,7 @@ import kotlin.io.path.inputStream
 class PrintManagerStoreAll(
     private val printFilter: PrintFilter,
     private val out: PrintStream = System.out,
-): PrintManager {
+) : PrintManager {
     val tmpFile = createTempFile(prefix = "massgit_")
     private val stdoutCharset = Charset.forName("utf8")
 

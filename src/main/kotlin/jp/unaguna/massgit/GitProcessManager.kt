@@ -1,10 +1,10 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.printfilter.LineHeadFilter
-import jp.unaguna.massgit.printmanager.PrintManagerStoreAll
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import java.nio.file.Path
-import kotlin.concurrent.thread
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class GitProcessManager(
     private val gitSubCommand: String,
@@ -15,7 +15,10 @@ class GitProcessManager(
     fun run(massgitBaseDir: Path? = null) {
         require(repoDirectories.isNotEmpty())
 
-        val threads = repoDirectories.map { dirname ->
+        // TODO: 同時に実行するスレッド数を指定できるようにする
+        val executor = Executors.newFixedThreadPool(1)
+
+        repoDirectories.map { dirname ->
             val args = mutableListOf("git", "-C", dirname, gitSubCommand).apply {
                 addAll(gitSubCommandArgs)
             }
@@ -27,8 +30,8 @@ class GitProcessManager(
             }
             val process = processBuilder.start()
 
-            thread {
-                PrintManagerStoreAll(
+            executor.submit {
+                PrintManagerThrough(
                     LineHeadFilter("$dirname${repSuffix ?: ": "}")
                 )
                     .use { printManager ->
@@ -41,6 +44,10 @@ class GitProcessManager(
                     }
             }
         }
-        threads.forEach { it.join() }
+
+        executor.shutdown()
+        while (!executor.isTerminated) {
+            executor.awaitTermination(1, TimeUnit.MINUTES)
+        }
     }
 }

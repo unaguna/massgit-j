@@ -24,7 +24,7 @@ data class MainArgs(
         val args: List<String>
     }
 
-    class OptionImpl(override val def: OptionDef): Option {
+    class OptionImpl(override val def: OptionDef) : Option {
         override val args = mutableListOf<String>()
 
         fun push(arg: String) {
