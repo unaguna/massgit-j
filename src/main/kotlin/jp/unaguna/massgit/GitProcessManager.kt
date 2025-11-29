@@ -20,7 +20,7 @@ class GitProcessManager(
                 addAll(gitSubCommandArgs)
             }
             val processBuilder = ProcessBuilder(args).apply {
-                redirectErrorStream(false)
+                redirectError(ProcessBuilder.Redirect.INHERIT)
                 if (massgitBaseDir != null) {
                     directory(massgitBaseDir.toFile())
                 }

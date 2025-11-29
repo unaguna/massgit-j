@@ -6,6 +6,10 @@ data class MainArgs(
     val subOptions: List<String>,
 ) {
     companion object {
+        fun of(args: Array<String>): MainArgs {
+            return of(args.toList())
+        }
+
         fun of(args: List<String>): MainArgs {
             val mainOptions = mutableListOf<String>()
             var subCommand: String? = null
