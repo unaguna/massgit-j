@@ -41,7 +41,6 @@ class GitProcessManager(
         threads.forEach { it.join() }
     }
 
-
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {

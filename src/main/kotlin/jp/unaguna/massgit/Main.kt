@@ -2,8 +2,10 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
 
+@Suppress("UtilityClassWithPublicConstructor")
 class Main {
     companion object {
+        @Suppress("MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
@@ -27,7 +29,6 @@ class Main {
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
-
             // TODO: マーカーによる絞り込み
             val repoDirectories = repos.map { it.dirname }
 
