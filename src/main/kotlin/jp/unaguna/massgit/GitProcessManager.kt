@@ -27,15 +27,18 @@ class GitProcessManager(
             }
             val process = processBuilder.start()
 
-            val processController = ProcessController(
-                process = process,
-                printManager = PrintManagerStoreAll(
-                    LineHeadFilter("$dirname${repSuffix ?: ": "}")
-                ),
-            )
-
             thread {
-                processController.readOutput()
+                PrintManagerStoreAll(
+                    LineHeadFilter("$dirname${repSuffix ?: ": "}")
+                )
+                    .use { printManager ->
+                        val processController = ProcessController(
+                            process = process,
+                            printManager = printManager,
+                        )
+
+                        processController.readOutput()
+                    }
             }
         }
         threads.forEach { it.join() }

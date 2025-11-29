@@ -22,4 +22,8 @@ class PrintManagerThrough(
     override fun postOutput(stdout: InputStream) {
         // do nothing
     }
+
+    override fun close() {
+        // do nothing
+    }
 }

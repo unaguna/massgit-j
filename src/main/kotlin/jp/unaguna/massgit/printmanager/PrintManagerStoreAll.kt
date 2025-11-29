@@ -31,6 +31,9 @@ class PrintManagerStoreAll(
 
     override fun postOutput(stdout: InputStream) {
         tmpFile.inputStream().copyTo(out)
+    }
+
+    override fun close() {
         tmpFile.deleteExisting()
     }
 }
