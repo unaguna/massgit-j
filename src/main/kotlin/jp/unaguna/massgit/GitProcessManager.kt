@@ -1,11 +1,9 @@
 package jp.unaguna.massgit
 
-import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import java.nio.file.Path
 import kotlin.concurrent.thread
-import kotlin.io.path.Path
 
 class GitProcessManager(
     private val gitSubCommand: String,
@@ -40,22 +38,5 @@ class GitProcessManager(
             }
         }
         threads.forEach { it.join() }
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val massgitBaseDir = System.getProperty("jp.unaguna.massgit.projectDir")?.let { Path(it) }
-                ?: Path("").toAbsolutePath()
-            val repos = Repo.loadFromFile(massgitBaseDir.resolve(".massgit").resolve("repos.json"))
-            val repoDirectories = repos.map { it.dirname }
-
-            val args = MainArgs.of(listOf("-x", "grep", "gradle"))
-            GitProcessManager(
-                args.subCommand!!,
-                args.subOptions,
-                repoDirectories = repoDirectories,
-            ).run(massgitBaseDir)
-        }
     }
 }
