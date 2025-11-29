@@ -36,6 +36,7 @@ class Main {
                 gitSubCommand,
                 gitSubCommandOptions,
                 repoDirectories = repoDirectories,
+                repSuffix = conf.repSuffix,
             )
                 .run(massgitBaseDir = conf.massProjectDir)
         }

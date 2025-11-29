@@ -12,4 +12,14 @@ class MainConfigurations(
 
     val reposFilePath: Path
         get() = massProjectDir.resolve(".massgit").resolve("repos.json")
+
+    val repSuffix: String?
+        get() {
+            val option = mainArgs.mainOptions.of(MainArgs.OptionDef.REP_SUFFIX).getOrNull(0)
+            if (option != null) {
+                return option.args[0]
+            }
+
+            return null
+        }
 }

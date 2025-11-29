@@ -11,6 +11,7 @@ class GitProcessManager(
     private val gitSubCommand: String,
     private val gitSubCommandArgs: List<String>,
     private val repoDirectories: List<String>,
+    private val repSuffix: String? = null,
 ) {
     fun run(massgitBaseDir: Path? = null) {
         require(repoDirectories.isNotEmpty())
@@ -30,7 +31,7 @@ class GitProcessManager(
             val processController = ProcessController(
                 process = process,
                 printManager = PrintManagerThrough(
-                    LineHeadFilter("$dirname: ")
+                    LineHeadFilter("$dirname${repSuffix ?: ": "}")
                 ),
             )
 
