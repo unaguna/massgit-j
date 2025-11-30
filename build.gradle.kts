@@ -55,7 +55,7 @@ tasks.register("generateVersionProperties") {
     outputs.dir(outputDir)
 
     doLast {
-        val versionProperties = file("$outputDir/class-loader-cmd/version.properties")
+        val versionProperties = file("$outputDir/massgit-version.properties")
         versionProperties.parentFile.mkdirs()
         versionProperties.writeText("version=$version")
     }

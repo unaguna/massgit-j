@@ -12,6 +12,11 @@ class Main {
             val conf = MainConfigurations(mainArgs.mainOptions)
             val repos = Repo.loadFromFile(conf.reposFilePath)
 
+            if (mainArgs.mainOptions.contains(MainArgs.OptionDef.VERSION)) {
+                showVersion()
+                return
+            }
+
             // TODO: massgit 独自サブコマンドの場合の分岐を作る
             if (mainArgs.subCommand != null) {
                 require(!conf.prohibitSubcommand(mainArgs.subCommand)) {
@@ -25,6 +30,11 @@ class Main {
                     repos,
                 )
             }
+        }
+
+        private fun showVersion() {
+            val version = VersionProperties.getVersion()
+            println("massgit on java $version")
         }
 
         fun mainRunGitProcesses(

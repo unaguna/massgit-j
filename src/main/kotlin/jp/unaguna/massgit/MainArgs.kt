@@ -6,7 +6,8 @@ data class MainArgs(
     val subOptions: List<String>,
 ) {
     enum class OptionDef(val names: List<String>, val argNum: Int) {
-        REP_SUFFIX(listOf("--rep-suffix"), 1)
+        VERSION(listOf("--version"), 0),
+        REP_SUFFIX(listOf("--rep-suffix"), 1),
         ;
 
         /**
