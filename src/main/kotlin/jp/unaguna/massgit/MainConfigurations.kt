@@ -1,10 +1,12 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.configfile.Prop
 import java.nio.file.Path
 import kotlin.io.path.Path
 
 class MainConfigurations(
     private val options: MainArgs.Options,
+    private val prop: Prop = Prop(),
 ) {
     val massProjectDir: Path
         get() = System.getProperty("jp.unaguna.massgit.projectDir")?.let { Path(it) }
@@ -22,4 +24,8 @@ class MainConfigurations(
 
             return null
         }
+
+    fun prohibitSubcommand(subcommand: String): Boolean {
+        return prop.getBoolean(Prop.Key.ProhibitedSubcommands(subcommand))
+    }
 }

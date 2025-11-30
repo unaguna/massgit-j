@@ -14,6 +14,10 @@ class Main {
 
             // TODO: massgit 独自サブコマンドの場合の分岐を作る
             if (mainArgs.subCommand != null) {
+                require(!conf.prohibitSubcommand(mainArgs.subCommand)) {
+                    "subcommand '${mainArgs.subCommand}' is prohibited"
+                }
+
                 mainRunGitProcesses(
                     mainArgs.subCommand,
                     mainArgs.subOptions,
