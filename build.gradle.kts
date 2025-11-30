@@ -38,7 +38,7 @@ tasks {
     shadowJar {
         manifest {
             attributes["Main-Class"] = "jp.unaguna.massgit.Main"
-            archiveBaseName = archiveBaseName.get().removeSuffix("-sp")
+            archiveBaseName = archiveBaseName.get().removeSuffix("-j")
             archiveClassifier = ""
         }
     }
