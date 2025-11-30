@@ -1,11 +1,12 @@
 plugins {
     kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.gitlab.arturbosch.detekt") version("1.23.8")
 }
 
 group = "jp.unaguna"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 
 sourceSets {
     main {
@@ -21,6 +22,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
     testImplementation(kotlin("test"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 }
@@ -36,7 +38,7 @@ tasks {
     shadowJar {
         manifest {
             attributes["Main-Class"] = "jp.unaguna.massgit.Main"
-            archiveBaseName = archiveBaseName.get().removeSuffix("-sp")
+            archiveBaseName = archiveBaseName.get().removeSuffix("-j")
             archiveClassifier = ""
         }
     }
@@ -53,7 +55,7 @@ tasks.register("generateVersionProperties") {
     outputs.dir(outputDir)
 
     doLast {
-        val versionProperties = file("$outputDir/class-loader-cmd/version.properties")
+        val versionProperties = file("$outputDir/massgit-version.properties")
         versionProperties.parentFile.mkdirs()
         versionProperties.writeText("version=$version")
     }
