@@ -1,21 +1,30 @@
 package jp.unaguna.massgit.configfile
 
-import java.util.Enumeration
-import java.util.Properties
+import java.net.URL
+import java.net.URLClassLoader
+import java.util.*
 import kotlin.reflect.KClass
 
 class Prop {
     private val default: Properties = Properties()
-    private val wrapper: Properties = Properties(default)
+    private val system: Properties = Properties(default)
+    private val wrapper: Properties = Properties(system)
+
+    private val loaderUrls: Array<URL> = listOfNotNull(
+        SystemProp.getSystemDir()?.toUri()?.toURL(),
+    )
+        .toTypedArray()
+    private val loader = URLClassLoader(loaderUrls, this.javaClass.classLoader)
 
     init {
         load(default, "massgit-default.properties")
+        load(system, "massgit-system.properties")
         load(wrapper, "massgit-local.properties")
     }
 
     private fun load(prop: Properties, name: String) {
         runCatching {
-            this.javaClass.classLoader.getResourceAsStream(name)?.use { inputStream ->
+            loader.getResourceAsStream(name)?.use { inputStream ->
                 prop.load(inputStream)
             }
         }.onFailure {
