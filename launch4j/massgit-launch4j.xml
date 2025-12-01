@@ -2,7 +2,7 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>console</headerType>
-  <jar>../build/libs/massgit-0.1.0.jar</jar>
+  <jar>../build/libs/massgit-0.1.1.jar</jar>
   <outfile>./dist/massgit.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
