@@ -28,9 +28,9 @@ class GitProcessManager(
                     directory(massgitBaseDir.toFile())
                 }
             }
-            val process = processBuilder.start()
 
             executor.submit {
+                val process = processBuilder.start()
                 PrintManagerThrough(
                     LineHeadFilter("$dirname${repSuffix ?: ": "}")
                 )

@@ -9,13 +9,14 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
-            val conf = MainConfigurations(mainArgs.mainOptions)
-            val repos = Repo.loadFromFile(conf.reposFilePath)
 
             if (mainArgs.mainOptions.contains(MainArgs.OptionDef.VERSION)) {
                 showVersion()
                 return
             }
+
+            val conf = MainConfigurations(mainArgs.mainOptions)
+            val repos = Repo.loadFromFile(conf.reposFilePath)
 
             // TODO: massgit 独自サブコマンドの場合の分岐を作る
             if (mainArgs.subCommand != null) {
