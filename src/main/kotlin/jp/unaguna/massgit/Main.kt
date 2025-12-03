@@ -44,13 +44,12 @@ class Main {
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
-            // TODO: マーカーによる絞り込み
-            val repoDirectories = repos.map { it.dirname }
+            // TODO: repos のマーカーによる絞り込み
 
             GitProcessManager(
                 gitSubCommand,
                 gitSubCommandOptions,
-                repoDirectories = repoDirectories,
+                repos = repos,
                 repSuffix = conf.repSuffix,
             )
                 .run(massgitBaseDir = conf.massProjectDir)
