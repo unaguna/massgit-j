@@ -13,19 +13,20 @@ class GitProcessManager(
     private val repos: List<Repo>,
     private val repSuffix: String? = null,
 ) {
+    private val cmdTemplate = buildProcessArgs {
+        append("git")
+        append("-C")
+        append { r -> listOf(r.dirname) }
+        append(gitSubCommand)
+        append(gitSubCommandArgs)
+    }
+
     fun run(massgitBaseDir: Path? = null) {
         require(repos.isNotEmpty())
 
         // TODO: 同時に実行するスレッド数を指定できるようにする
         val executor = Executors.newFixedThreadPool(1)
 
-        val cmdTemplate = buildProcessArgs {
-            append("git")
-            append("-C")
-            append { r -> listOf(r.dirname) }
-            append(gitSubCommand)
-            append(gitSubCommandArgs)
-        }
         repos.map { repo ->
             val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
                 if (massgitBaseDir != null) {
