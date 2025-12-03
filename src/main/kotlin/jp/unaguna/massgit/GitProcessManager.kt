@@ -23,7 +23,6 @@ class GitProcessManager(
                 addAll(gitSubCommandArgs)
             }
             val processBuilder = ProcessBuilder(args).apply {
-                redirectError(ProcessBuilder.Redirect.INHERIT)
                 if (massgitBaseDir != null) {
                     directory(massgitBaseDir.toFile())
                 }
@@ -33,15 +32,20 @@ class GitProcessManager(
                 val process = processBuilder.start()
                 PrintManagerThrough(
                     LineHeadFilter("$dirname${repSuffix ?: ": "}")
-                )
-                    .use { printManager ->
+                ).use { printManager ->
+                    PrintManagerThrough(
+                        LineHeadFilter("$dirname: "),
+                        out = System.err,
+                    ).use { printErrorManager ->
                         val processController = ProcessController(
                             process = process,
                             printManager = printManager,
+                            printErrorManager = printErrorManager,
                         )
 
                         processController.readOutput()
                     }
+                }
             }
         }
 
