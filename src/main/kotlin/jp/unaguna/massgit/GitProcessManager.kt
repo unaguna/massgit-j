@@ -58,7 +58,7 @@ class GitProcessManager(
     private val gitSubCommand: String,
     private val gitSubCommandArgs: List<String>,
     private val repSuffix: String? = null,
-): GitProcessManagerBase() {
+) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
         append("git")
         append("-C")
@@ -76,7 +76,7 @@ class GitProcessManager(
 
 class CloneProcessManager(
     private val repSuffix: String? = null,
-): GitProcessManagerBase() {
+) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
         append("git")
         append("clone")
