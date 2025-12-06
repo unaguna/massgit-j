@@ -18,8 +18,12 @@ class Main {
             val conf = MainConfigurations(mainArgs.mainOptions)
             val repos = Repo.loadFromFile(conf.reposFilePath)
 
-            // TODO: massgit 独自サブコマンドの場合の分岐を作る
-            if (mainArgs.subCommand != null) {
+            if (mainArgs.subCommand == "mg-clone") {
+                runGitCloneProcesses(
+                    conf,
+                    repos,
+                )
+            } else if (mainArgs.subCommand != null) {
                 require(!conf.prohibitSubcommand(mainArgs.subCommand)) {
                     "subcommand '${mainArgs.subCommand}' is prohibited"
                 }
@@ -38,22 +42,32 @@ class Main {
             println("massgit on java $version")
         }
 
-        fun mainRunGitProcesses(
+        private fun mainRunGitProcesses(
             gitSubCommand: String,
             gitSubCommandOptions: List<String>,
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
-            // TODO: マーカーによる絞り込み
-            val repoDirectories = repos.map { it.dirname }
+            // TODO: repos のマーカーによる絞り込み
 
             GitProcessManager(
                 gitSubCommand,
                 gitSubCommandOptions,
-                repoDirectories = repoDirectories,
                 repSuffix = conf.repSuffix,
             )
-                .run(massgitBaseDir = conf.massProjectDir)
+                .run(repos, massgitBaseDir = conf.massProjectDir)
+        }
+
+        private fun runGitCloneProcesses(
+            conf: MainConfigurations,
+            repos: List<Repo>,
+        ) {
+            // TODO: repos のマーカーによる絞り込み
+
+            CloneProcessManager(
+                repSuffix = conf.repSuffix,
+            )
+                .run(repos, massgitBaseDir = conf.massProjectDir)
         }
     }
 }
