@@ -73,3 +73,22 @@ class GitProcessManager(
         )
     }
 }
+
+class CloneProcessManager(
+    private val repSuffix: String? = null,
+): GitProcessManagerBase() {
+    override val cmdTemplate = buildProcessArgs {
+        append("git")
+        append("clone")
+        append { r ->
+            val url = requireNotNull(r.url)
+            listOf(url, r.dirname)
+        }
+    }
+
+    override fun createPrintManager(repo: Repo): PrintManager {
+        return PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+        )
+    }
+}
