@@ -1,5 +1,6 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.common.collection.ClosablePair
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
@@ -33,16 +34,14 @@ abstract class GitProcessManagerBase {
 
             executor.submit {
                 val process = processBuilder.start()
-                createPrintManager(repo).use { printManager ->
-                    createPrintErrorManager(repo).use { printErrorManager ->
-                        val processController = ProcessController(
-                            process = process,
-                            printManager = printManager,
-                            printErrorManager = printErrorManager,
-                        )
+                createPrintManagers(repo).use { (printManager, printErrorManager) ->
+                    val processController = ProcessController(
+                        process = process,
+                        printManager = printManager,
+                        printErrorManager = printErrorManager,
+                    )
 
-                        processController.readOutput()
-                    }
+                    processController.readOutput()
                 }
             }
         }
@@ -51,6 +50,13 @@ abstract class GitProcessManagerBase {
         while (!executor.isTerminated) {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
+    }
+
+    private fun createPrintManagers(repo: Repo): ClosablePair<PrintManager, PrintManager> {
+        return ClosablePair.of(
+            { createPrintManager(repo) },
+            { createPrintErrorManager(repo) }
+        )
     }
 }
 
