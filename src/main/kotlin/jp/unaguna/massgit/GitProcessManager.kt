@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.submitForEach
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
@@ -25,24 +26,22 @@ abstract class GitProcessManagerBase {
         // TODO: 同時に実行するスレッド数を指定できるようにする
         val executor = Executors.newFixedThreadPool(1)
 
-        repos.map { repo ->
+        repos.submitForEach(executor) { repo ->
             val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
                 if (massgitBaseDir != null) {
                     directory(massgitBaseDir.toFile())
                 }
             }
 
-            executor.submit {
-                val process = processBuilder.start()
-                createPrintManagers(repo).use { (printManager, printErrorManager) ->
-                    val processController = ProcessController(
-                        process = process,
-                        printManager = printManager,
-                        printErrorManager = printErrorManager,
-                    )
+            val process = processBuilder.start()
+            createPrintManagers(repo).use { (printManager, printErrorManager) ->
+                val processController = ProcessController(
+                    process = process,
+                    printManager = printManager,
+                    printErrorManager = printErrorManager,
+                )
 
-                    processController.readOutput()
-                }
+                processController.readOutput()
             }
         }
 
