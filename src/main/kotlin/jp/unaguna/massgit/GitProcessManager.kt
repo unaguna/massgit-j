@@ -13,11 +13,15 @@ abstract class GitProcessManagerBase {
     protected abstract val cmdTemplate: ProcessArgs
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
-    protected open fun createPrintErrorManager(repo: Repo): PrintManager {
+    private fun createPrintErrorManager(errorFilter: PrintFilter): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}: "),
+            errorFilter,
             out = System.err,
         )
+    }
+
+    private fun errorFilter(repo: Repo): PrintFilter {
+        return LineHeadFilter("${repo.dirname}: ")
     }
 
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null) {
@@ -27,6 +31,7 @@ abstract class GitProcessManagerBase {
         val executor = Executors.newFixedThreadPool(1)
 
         repos.submitForEach(executor) { repo ->
+            val errorFilter = errorFilter(repo)
             val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
                 if (massgitBaseDir != null) {
                     directory(massgitBaseDir.toFile())
@@ -34,7 +39,7 @@ abstract class GitProcessManagerBase {
             }
 
             val process = processBuilder.start()
-            createPrintManagers(repo).use { (printManager, printErrorManager) ->
+            createPrintManagers(repo, errorFilter).use { (printManager, printErrorManager) ->
                 val processController = ProcessController(
                     process = process,
                     printManager = printManager,
@@ -51,10 +56,10 @@ abstract class GitProcessManagerBase {
         }
     }
 
-    private fun createPrintManagers(repo: Repo): ClosablePair<PrintManager, PrintManager> {
+    private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {
         return ClosablePair.of(
             { createPrintManager(repo) },
-            { createPrintErrorManager(repo) }
+            { createPrintErrorManager(errorFilter) }
         )
     }
 }
