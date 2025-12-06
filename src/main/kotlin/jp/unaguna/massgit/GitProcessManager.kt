@@ -7,21 +7,18 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class GitProcessManager(
-    private val gitSubCommand: String,
-    private val gitSubCommandArgs: List<String>,
-    private val repos: List<Repo>,
-    private val repSuffix: String? = null,
-) {
-    private val cmdTemplate = buildProcessArgs {
-        append("git")
-        append("-C")
-        append { r -> listOf(r.dirname) }
-        append(gitSubCommand)
-        append(gitSubCommandArgs)
+abstract class GitProcessManagerBase {
+    protected abstract val cmdTemplate: ProcessArgs
+    protected abstract fun createPrintManager(repo: Repo): PrintManager
+
+    protected open fun createPrintErrorManager(repo: Repo): PrintManager {
+        return PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}: "),
+            out = System.err,
+        )
     }
 
-    fun run(massgitBaseDir: Path? = null) {
+    fun run(repos: List<Repo>, massgitBaseDir: Path? = null) {
         require(repos.isNotEmpty())
 
         // TODO: 同時に実行するスレッド数を指定できるようにする
@@ -36,13 +33,8 @@ class GitProcessManager(
 
             executor.submit {
                 val process = processBuilder.start()
-                PrintManagerThrough(
-                    LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
-                ).use { printManager ->
-                    PrintManagerThrough(
-                        LineHeadFilter("${repo.dirname}: "),
-                        out = System.err,
-                    ).use { printErrorManager ->
+                createPrintManager(repo).use { printManager ->
+                    createPrintErrorManager(repo).use { printErrorManager ->
                         val processController = ProcessController(
                             process = process,
                             printManager = printManager,
@@ -59,5 +51,25 @@ class GitProcessManager(
         while (!executor.isTerminated) {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
+    }
+}
+
+class GitProcessManager(
+    private val gitSubCommand: String,
+    private val gitSubCommandArgs: List<String>,
+    private val repSuffix: String? = null,
+): GitProcessManagerBase() {
+    override val cmdTemplate = buildProcessArgs {
+        append("git")
+        append("-C")
+        append { r -> listOf(r.dirname) }
+        append(gitSubCommand)
+        append(gitSubCommandArgs)
+    }
+
+    override fun createPrintManager(repo: Repo): PrintManager {
+        return PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+        )
     }
 }

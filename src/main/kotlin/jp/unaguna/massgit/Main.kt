@@ -49,10 +49,9 @@ class Main {
             GitProcessManager(
                 gitSubCommand,
                 gitSubCommandOptions,
-                repos = repos,
                 repSuffix = conf.repSuffix,
             )
-                .run(massgitBaseDir = conf.massProjectDir)
+                .run(repos, massgitBaseDir = conf.massProjectDir)
         }
     }
 }
