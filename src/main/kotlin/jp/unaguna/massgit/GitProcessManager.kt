@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.getEither
 import jp.unaguna.massgit.common.collection.submitForEach
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.GitProcessCanceledException
@@ -56,6 +57,7 @@ abstract class GitProcessManagerBase {
                     processController.readOutput()
                 }
                 process.waitFor()
+                process
             }.onFailure { e ->
                 val baseMsg = if (e is MassgitException) {
                     e.consoleMessage
@@ -68,7 +70,7 @@ abstract class GitProcessManagerBase {
 
                 System.err.println(message)
                 // TODO: 例外をログ出力
-            }
+            }.getEither()
         }
 
         executor.shutdown()
@@ -78,11 +80,11 @@ abstract class GitProcessManagerBase {
 
         // Print Summary
         if (printPostSummary) {
-            val exitCodes = executionFutures.map { future -> future.get().getOrNull() }
-            val succeeded = exitCodes.count { it == 0 }
-            val failed = exitCodes.size - succeeded
+            val results = executionFutures.map { future -> future.get() }
+            val succeeded = results.count { it.isLeftAnd { p -> p.exitValue() == 0 } }
+            val failed = results.size - succeeded
 
-            System.err.println("Success: $succeeded, Failed: $failed, Total: ${exitCodes.size}")
+            System.err.println("Success: $succeeded, Failed: $failed, Total: ${results.size}")
         }
     }
 
