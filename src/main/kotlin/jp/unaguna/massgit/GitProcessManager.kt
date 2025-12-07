@@ -9,13 +9,14 @@ import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.exception.RepoNotContainUrlException
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
+import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 abstract class GitProcessManagerBase {
     protected abstract val cmdTemplate: ProcessArgs
-    protected open val printPostSummary: Boolean = true
+    protected open val summaryPrinter: SummaryPrinter? = null
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
     private fun createPrintErrorManager(errorFilter: PrintFilter): PrintManager {
@@ -78,14 +79,7 @@ abstract class GitProcessManagerBase {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
 
-        // Print Summary
-        if (printPostSummary) {
-            val results = executionFutures.map { future -> future.get() }
-            val succeeded = results.count { it.isLeftAnd { p -> p.exitValue() == 0 } }
-            val failed = results.size - succeeded
-
-            System.err.println("Success: $succeeded, Failed: $failed, Total: ${results.size}")
-        }
+        summaryPrinter?.printSummary(executionFutures)
     }
 
     private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {
@@ -101,7 +95,6 @@ class GitProcessManager(
     private val gitSubCommandArgs: List<String>,
     private val repSuffix: String? = null,
 ) : GitProcessManagerBase() {
-    override val printPostSummary = false
     override val cmdTemplate = buildProcessArgs {
         append("git")
         append("-C")
@@ -129,6 +122,8 @@ class CloneProcessManager(
             listOf(url, r.dirname)
         }
     }
+
+    override val summaryPrinter = RegularSummaryPrinter()
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
