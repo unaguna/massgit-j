@@ -1,6 +1,9 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.exception.LoadingReposFailedException
+import jp.unaguna.massgit.exception.MassgitException
+import kotlin.system.exitProcess
 
 @Suppress("UtilityClassWithPublicConstructor")
 class Main {
@@ -8,6 +11,27 @@ class Main {
         @Suppress("MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
+            runCatching {
+                run(args)
+            }.onFailure { e ->
+                val message = if (e is MassgitException) {
+                    e.consoleMessage
+                } else if (e.message != null) {
+                    "some error occurred: ${e.message}"
+                } else {
+                    "some error occurred"
+                }
+
+                System.err.println(message)
+                // TODO: 例外をログ出力
+
+                exitProcess(127)
+            }
+            // TODO: 実行結果によって終了コードを変える
+            exitProcess(0)
+        }
+
+        private fun run(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
 
             if (mainArgs.mainOptions.contains(MainArgs.OptionDef.VERSION)) {
@@ -16,7 +40,9 @@ class Main {
             }
 
             val conf = MainConfigurations(mainArgs.mainOptions)
-            val repos = Repo.loadFromFile(conf.reposFilePath)
+            val repos = runCatching {
+                Repo.loadFromFile(conf.reposFilePath)
+            }.getOrElse { t -> throw LoadingReposFailedException(t) }
 
             if (mainArgs.subCommand == "mg-clone") {
                 runGitCloneProcesses(
