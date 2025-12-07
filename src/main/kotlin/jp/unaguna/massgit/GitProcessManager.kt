@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit
 
 abstract class GitProcessManagerBase {
     protected abstract val cmdTemplate: ProcessArgs
+    protected open val printPostSummary: Boolean = true
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
     private fun createPrintErrorManager(errorFilter: PrintFilter): PrintManager {
@@ -33,7 +34,7 @@ abstract class GitProcessManagerBase {
         // TODO: 同時に実行するスレッド数を指定できるようにする
         val executor = Executors.newFixedThreadPool(1)
 
-        repos.submitForEach(executor) { repo ->
+        val executionFutures = repos.submitForEach(executor) { repo ->
             val errorFilter = errorFilter(repo)
             runCatching {
                 val processBuilder = runCatching {
@@ -54,6 +55,7 @@ abstract class GitProcessManagerBase {
 
                     processController.readOutput()
                 }
+                process.waitFor()
             }.onFailure { e ->
                 val baseMsg = if (e is MassgitException) {
                     e.consoleMessage
@@ -73,6 +75,15 @@ abstract class GitProcessManagerBase {
         while (!executor.isTerminated) {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
+
+        // Print Summary
+        if (printPostSummary) {
+            val exitCodes = executionFutures.map { future -> future.get().getOrNull() }
+            val succeeded = exitCodes.count { it == 0 }
+            val failed = exitCodes.size - succeeded
+
+            System.err.println("Success: $succeeded, Failed: $failed, Total: ${exitCodes.size}")
+        }
     }
 
     private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {
@@ -88,6 +99,7 @@ class GitProcessManager(
     private val gitSubCommandArgs: List<String>,
     private val repSuffix: String? = null,
 ) : GitProcessManagerBase() {
+    override val printPostSummary = false
     override val cmdTemplate = buildProcessArgs {
         append("git")
         append("-C")
