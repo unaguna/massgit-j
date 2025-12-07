@@ -8,7 +8,7 @@ import kotlin.io.path.readText
 
 @Serializable
 data class Repo(
-    val url: String?,
+    val url: String? = null,
     val dirname: String,
     val markers: List<String> = emptyList(),
 ) {

@@ -32,21 +32,28 @@ abstract class GitProcessManagerBase {
 
         repos.submitForEach(executor) { repo ->
             val errorFilter = errorFilter(repo)
-            val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
-                if (massgitBaseDir != null) {
-                    directory(massgitBaseDir.toFile())
+            runCatching {
+                val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
+                    if (massgitBaseDir != null) {
+                        directory(massgitBaseDir.toFile())
+                    }
                 }
-            }
 
-            val process = processBuilder.start()
-            createPrintManagers(repo, errorFilter).use { (printManager, printErrorManager) ->
-                val processController = ProcessController(
-                    process = process,
-                    printManager = printManager,
-                    printErrorManager = printErrorManager,
-                )
+                val process = processBuilder.start()
+                createPrintManagers(repo, errorFilter).use { (printManager, printErrorManager) ->
+                    val processController = ProcessController(
+                        process = process,
+                        printManager = printManager,
+                        printErrorManager = printErrorManager,
+                    )
 
-                processController.readOutput()
+                    processController.readOutput()
+                }
+            }.onFailure { e ->
+                val message = e.message?.let { errorFilter.mapLine(it) }
+                    ?: "some error occurred"
+                System.err.println(message)
+                // TODO: 例外をログ出力
             }
         }
 
