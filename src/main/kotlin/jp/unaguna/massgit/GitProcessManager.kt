@@ -110,8 +110,7 @@ open class GitProcessManager protected constructor(
         append(mainArgs.subOptions)
     }
 
-    open val repSuffix: String = mainArgs.mainOptions.getOneOrNull(MainArgs.OptionDef.REP_SUFFIX)?.getOneArg()
-        ?: REP_SUFFIX_DEFAULT
+    open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
@@ -133,11 +132,10 @@ open class GitProcessManager protected constructor(
 class GitProcessDiffManager(
     mainArgs: MainArgs,
 ) : GitProcessManager(mainArgs) {
-    override val repSuffix: String = mainArgs.mainOptions.getOneOrNull(MainArgs.OptionDef.REP_SUFFIX)?.getOneArg()
-        ?: when {
-            mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
-            else -> REP_SUFFIX_DEFAULT
-        }
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
+        mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
+        else -> REP_SUFFIX_DEFAULT
+    }
 
     override fun createPrintManager(repo: Repo): PrintManager = when {
         mainArgs.subOptions.containsAny("--name-only", "--numstat", "--shortstat") -> PrintManagerThrough(
@@ -153,8 +151,7 @@ class GitProcessDiffManager(
 class GitProcessFilepathManager(
     mainArgs: MainArgs,
 ) : GitProcessManager(mainArgs) {
-    override val repSuffix: String = mainArgs.mainOptions.getOneOrNull(MainArgs.OptionDef.REP_SUFFIX)?.getOneArg()
-        ?: REP_SUFFIX_PATH_SEP
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
 }
 
 class CloneProcessManager(
