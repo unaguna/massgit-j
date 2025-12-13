@@ -34,7 +34,7 @@ class Main {
         private fun run(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
 
-            if (mainArgs.mainOptions.contains(MassgitOptionsDef.VERSION)) {
+            if (mainArgs.mainOptions.isVersion()) {
                 showVersion()
                 return
             }
