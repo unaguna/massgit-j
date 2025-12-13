@@ -5,12 +5,14 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
+import kotlin.test.assertEquals
 
 class MassgitOptionsTest {
     @ParameterizedTest
     @MethodSource("paramsOfTestRepSuffix")
-    fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String) {
-        val massgitOptions = MassgitOptions
+    fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String?) {
+        val (massgitOptions, _) = MassgitOptions.build(argsStr)
+        assertEquals(expectedRepSuffix, massgitOptions.getRepSuffix())
     }
 
     companion object {
