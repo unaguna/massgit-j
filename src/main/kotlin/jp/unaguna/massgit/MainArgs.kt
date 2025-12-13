@@ -43,7 +43,9 @@ data class MainArgs(
             val mainOptions = MassgitOptions(mainOptionsInner)
             val subCommand: String? = remainingArgs.getOrNull(0)
             val subOptions = mutableListOf<String>().apply {
-                addAll(remainingArgs.subList(1, remainingArgs.size))
+                if (remainingArgs.size > 1) {
+                    addAll(remainingArgs.subList(1, remainingArgs.size))
+                }
             }
 
             // TODO: validate mainOptions
