@@ -8,7 +8,7 @@ import kotlin.system.exitProcess
 @Suppress("UtilityClassWithPublicConstructor")
 class Main {
     companion object {
-        @Suppress("MemberNameEqualsClassName")
+        @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
             runCatching {

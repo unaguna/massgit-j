@@ -33,5 +33,5 @@ data class Repo(
     }
 }
 
-private class NoReposFileFoundException(reposPath: Path, cause: Throwable?):
+private class NoReposFileFoundException(reposPath: Path, cause: Throwable?) :
     MassgitException("the repos file is not found: $reposPath", cause)

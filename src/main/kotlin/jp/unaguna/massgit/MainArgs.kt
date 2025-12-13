@@ -88,8 +88,7 @@ data class MainArgs(
 
     companion object {
         private val mainOptionDef: Map<String, OptionDef> = OptionDef.entries
-            .map { it.names.map { name -> Pair(name, it) } }
-            .flatten()
+            .flatMap { it.names.map { name -> Pair(name, it) } }
             .associate { it }
 
         fun of(args: Array<String>): MainArgs {
