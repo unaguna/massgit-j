@@ -1,12 +1,14 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.containsAny
 import jp.unaguna.massgit.common.collection.getEither
 import jp.unaguna.massgit.common.collection.submitForEach
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.GitProcessCanceledException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.exception.RepoNotContainUrlException
+import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
@@ -96,7 +98,7 @@ abstract class GitProcessManagerBase {
 }
 
 open class GitProcessManager protected constructor(
-    private val mainArgs: MainArgs,
+    protected val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
         requireNotNull(mainArgs.subCommand)
@@ -133,6 +135,16 @@ class GitProcessDiffManager(
     override val repSuffix: String = when {
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
+    }
+
+    override fun createPrintManager(repo: Repo): PrintManager = when {
+        mainArgs.subOptions.containsAny("--name-only", "--numstat", "--shortstat") -> PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}$repSuffix")
+        )
+        else -> PrintManagerThrough(
+            DoNothingFilter,
+            header = "${repo.dirname}$repSuffix"
+        )
     }
 }
 

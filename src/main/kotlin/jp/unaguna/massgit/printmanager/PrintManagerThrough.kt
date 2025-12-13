@@ -9,11 +9,15 @@ import java.nio.charset.Charset
 
 class PrintManagerThrough(
     private val printFilter: PrintFilter,
+    private val header: String? = null,
     private val out: PrintStream = System.out,
 ) : PrintManager {
     override fun readAllLinesAndInstantOutput(stdout: InputStream) {
         val reader = InputStreamReader(stdout, Charset.forName("utf8"))
 
+        if (header != null) {
+            out.println(header)
+        }
         reader.forEachLine { line ->
             out.println(printFilter.mapLine(line))
         }
