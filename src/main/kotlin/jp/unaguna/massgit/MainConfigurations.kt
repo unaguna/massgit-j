@@ -5,7 +5,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 class MainConfigurations(
-    options: MainArgs.MassgitOptions,
+    options: MassgitOptions,
     private val prop: Prop = Prop(),
 ) {
     val massProjectDir: Path
