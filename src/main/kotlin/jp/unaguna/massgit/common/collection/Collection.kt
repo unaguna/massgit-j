@@ -8,3 +8,7 @@ fun <E, R> List<E>.submitForEach(executor: ExecutorService, task: (e: E) -> R): 
         executor.submit<R> { task(it) }
     }
 }
+
+fun <E> Collection<E>.containsAny(vararg value: E): Boolean {
+    return value.any { contains(it) }
+}

@@ -1,12 +1,14 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.containsAny
 import jp.unaguna.massgit.common.collection.getEither
 import jp.unaguna.massgit.common.collection.submitForEach
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.GitProcessCanceledException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.exception.RepoNotContainUrlException
+import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
@@ -88,26 +90,74 @@ abstract class GitProcessManagerBase {
             { createPrintErrorManager(errorFilter) }
         )
     }
+
+    companion object {
+        const val REP_SUFFIX_DEFAULT = ": "
+        const val REP_SUFFIX_PATH_SEP = "/"
+    }
 }
 
-class GitProcessManager(
-    private val gitSubCommand: String,
-    private val gitSubCommandArgs: List<String>,
-    private val repSuffix: String? = null,
+open class GitProcessManager protected constructor(
+    protected val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
+        requireNotNull(mainArgs.subCommand)
+
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(gitSubCommand)
-        append(gitSubCommandArgs)
+        append(mainArgs.subCommand)
+        append(mainArgs.subOptions)
     }
+
+    open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}$repSuffix")
         )
     }
+
+    companion object {
+        fun construct(mainArgs: MainArgs): GitProcessManager {
+            return when (mainArgs.subCommand) {
+                "diff" -> GitProcessDiffManager(mainArgs)
+                "grep", "ls-files" -> GitProcessFilepathManager(mainArgs)
+                else -> GitProcessManager(mainArgs)
+            }
+        }
+    }
+}
+
+class GitProcessDiffManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
+        mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
+        else -> REP_SUFFIX_DEFAULT
+    }
+
+    override fun createPrintManager(repo: Repo): PrintManager = when {
+        mainArgs.subOptions.containsAny(
+            "--name-only",
+            "--numstat",
+            "--shortstat",
+            "--raw",
+            "--name-status"
+        ) -> PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}$repSuffix")
+        )
+        else -> PrintManagerThrough(
+            DoNothingFilter,
+            header = "${repo.dirname}$repSuffix"
+        )
+    }
+}
+
+class GitProcessFilepathManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
 }
 
 class CloneProcessManager(
@@ -127,7 +177,7 @@ class CloneProcessManager(
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}${repSuffix ?: REP_SUFFIX_DEFAULT}")
         )
     }
 }

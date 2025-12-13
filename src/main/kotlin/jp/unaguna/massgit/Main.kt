@@ -34,7 +34,7 @@ class Main {
         private fun run(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
 
-            if (mainArgs.mainOptions.contains(MainArgs.OptionDef.VERSION)) {
+            if (mainArgs.mainOptions.isVersion()) {
                 showVersion()
                 return
             }
@@ -55,8 +55,7 @@ class Main {
                 }
 
                 mainRunGitProcesses(
-                    mainArgs.subCommand,
-                    mainArgs.subOptions,
+                    mainArgs,
                     conf,
                     repos,
                 )
@@ -69,18 +68,13 @@ class Main {
         }
 
         private fun mainRunGitProcesses(
-            gitSubCommand: String,
-            gitSubCommandOptions: List<String>,
+            mainArgs: MainArgs,
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
             // TODO: repos のマーカーによる絞り込み
 
-            GitProcessManager(
-                gitSubCommand,
-                gitSubCommandOptions,
-                repSuffix = conf.repSuffix,
-            )
+            GitProcessManager.construct(mainArgs)
                 .run(repos, massgitBaseDir = conf.massProjectDir)
         }
 
