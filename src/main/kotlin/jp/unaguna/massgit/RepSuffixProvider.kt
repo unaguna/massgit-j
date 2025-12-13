@@ -10,6 +10,10 @@ class RepSuffixProvider {
 
         return when (args.subCommand) {
             "grep", "ls-files" -> "/"
+            "diff" -> when {
+                args.subOptions.contains("--name-only") -> "/"
+                else -> ": "
+            }
             else -> ": "
         }
     }

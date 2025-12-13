@@ -24,6 +24,7 @@ class RepSuffixProviderTest {
         fun paramsOfTestRepSuffixProvider(): Stream<Arguments> = Stream.of(
             arguments(listOf("switch"), ": "),
             arguments(listOf("diff"), ": "),
+            arguments(listOf("diff", "--name-only"), "/"),
             arguments(listOf("grep"), "/"),
             arguments(listOf("ls-files"), "/"),
         )
