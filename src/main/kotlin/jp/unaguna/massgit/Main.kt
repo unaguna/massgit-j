@@ -74,7 +74,7 @@ class Main {
         ) {
             // TODO: repos のマーカーによる絞り込み
 
-            GitProcessManager(mainArgs)
+            GitProcessManager.construct(mainArgs)
                 .run(repos, massgitBaseDir = conf.massProjectDir)
         }
 

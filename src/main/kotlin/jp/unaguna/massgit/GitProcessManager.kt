@@ -88,9 +88,14 @@ abstract class GitProcessManagerBase {
             { createPrintErrorManager(errorFilter) }
         )
     }
+
+    companion object {
+        const val REP_SUFFIX_DEFAULT = ": "
+        const val REP_SUFFIX_PATH_SEP = "/"
+    }
 }
 
-class GitProcessManager(
+open class GitProcessManager protected constructor(
     private val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
@@ -103,14 +108,38 @@ class GitProcessManager(
         append(mainArgs.subOptions)
     }
 
-    private val repSuffixProvider = RepSuffixProvider()
+    open val repSuffix: String = REP_SUFFIX_DEFAULT
 
     override fun createPrintManager(repo: Repo): PrintManager {
-        val repSuffix = repSuffixProvider.decideRefSuffix(mainArgs)
         return PrintManagerThrough(
             LineHeadFilter("${repo.dirname}$repSuffix")
         )
     }
+
+    companion object {
+        fun construct(mainArgs: MainArgs): GitProcessManager {
+            return when (mainArgs.subCommand) {
+                "diff" -> GitProcessDiffManager(mainArgs)
+                "grep", "ls-files" -> GitProcessFilepathManager(mainArgs)
+                else -> GitProcessManager(mainArgs)
+            }
+        }
+    }
+}
+
+class GitProcessDiffManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = when {
+        mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
+        else -> REP_SUFFIX_DEFAULT
+    }
+}
+
+class GitProcessFilepathManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = REP_SUFFIX_PATH_SEP
 }
 
 class CloneProcessManager(
@@ -130,7 +159,7 @@ class CloneProcessManager(
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}${repSuffix ?: REP_SUFFIX_DEFAULT}")
         )
     }
 }

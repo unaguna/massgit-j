@@ -7,21 +7,21 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 import kotlin.test.assertEquals
 
-class RepSuffixProviderTest {
+class RepSuffixTest {
     @ParameterizedTest
-    @MethodSource("paramsOfTestRepSuffixProvider")
-    fun testRepSuffixProvider(argsStr: List<String>, expectedRepSuffix: String) {
+    @MethodSource("paramsOfTestRepSuffix")
+    fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String) {
         val args = MainArgs.of(argsStr)
-        val repSuffixProvider = RepSuffixProvider()
+        val gitProcessManager = GitProcessManager.construct(args)
 
-        val actualRepSuffix = repSuffixProvider.decideRefSuffix(args)
+        val actualRepSuffix = gitProcessManager.repSuffix
 
         assertEquals(expectedRepSuffix, actualRepSuffix)
     }
 
     companion object {
         @JvmStatic
-        fun paramsOfTestRepSuffixProvider(): Stream<Arguments> = Stream.of(
+        fun paramsOfTestRepSuffix(): Stream<Arguments> = Stream.of(
             arguments(listOf("switch"), ": "),
             arguments(listOf("diff"), ": "),
             arguments(listOf("diff", "--name-only"), "/"),
