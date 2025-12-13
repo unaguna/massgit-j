@@ -9,6 +9,13 @@ import kotlin.test.assertEquals
 
 class MassgitOptionsTest {
     @ParameterizedTest
+    @MethodSource("paramsOfTestRemainingArgs")
+    fun testRemainingArgs(argsStr: List<String>, expectedRemainingArgs: List<String>) {
+        val (_, actualRemainingArgs) = MassgitOptions.build(argsStr)
+        assertEquals(expectedRemainingArgs, actualRemainingArgs)
+    }
+
+    @ParameterizedTest
     @MethodSource("paramsOfTestRepSuffix")
     fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String?) {
         val (massgitOptions, _) = MassgitOptions.build(argsStr)
@@ -23,6 +30,18 @@ class MassgitOptionsTest {
     }
 
     companion object {
+        @JvmStatic
+        fun paramsOfTestRemainingArgs(): Stream<Arguments> = Stream.of(
+            arguments(emptyList<String>(), emptyList<String>()),
+            arguments(listOf("--rep-suffix", "@"), emptyList<String>()),
+            arguments(listOf("--rep-suffix=@"), emptyList<String>()),
+            arguments(listOf("--rep-suffix", "@", "grep"), listOf("grep")),
+            arguments(listOf("--rep-suffix=@", "grep"), listOf("grep")),
+            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), listOf("grep", "--dummy")),
+            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), listOf("grep", "--dummy")),
+            arguments(listOf("--version"), emptyList<String>()),
+        )
+
         @JvmStatic
         fun paramsOfTestRepSuffix(): Stream<Arguments> = Stream.of(
             arguments(emptyList<String>(), null),
