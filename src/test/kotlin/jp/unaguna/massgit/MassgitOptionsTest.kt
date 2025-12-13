@@ -28,6 +28,8 @@ class MassgitOptionsTest {
             arguments(emptyList<String>(), null),
             arguments(listOf("--rep-suffix", "@"), "@"),
             arguments(listOf("--rep-suffix=@"), "@"),
+            arguments(listOf("--rep-suffix= "), " "),
+            arguments(listOf("--rep-suffix="), ""),
             arguments(listOf("--version"), null),
         )
 
