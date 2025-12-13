@@ -15,6 +15,13 @@ class MassgitOptionsTest {
         assertEquals(expectedRepSuffix, massgitOptions.getRepSuffix())
     }
 
+    @ParameterizedTest
+    @MethodSource("paramsOfTestVersion")
+    fun testVersion(argsStr: List<String>, expectedVersion: Boolean) {
+        val (massgitOptions, _) = MassgitOptions.build(argsStr)
+        assertEquals(expectedVersion, massgitOptions.isVersion())
+    }
+
     companion object {
         @JvmStatic
         fun paramsOfTestRepSuffix(): Stream<Arguments> = Stream.of(
@@ -22,6 +29,15 @@ class MassgitOptionsTest {
             arguments(listOf("--rep-suffix", "@"), "@"),
             arguments(listOf("--rep-suffix=@"), "@"),
             arguments(listOf("--version"), null),
+        )
+
+        @JvmStatic
+        fun paramsOfTestVersion(): Stream<Arguments> = Stream.of(
+            arguments(emptyList<String>(), false),
+            arguments(listOf("--rep-suffix", "@"), false),
+            arguments(listOf("--version"), true),
+            arguments(listOf("--version", "--rep-suffix", "@"), true),
+            arguments(listOf("--rep-suffix", "@", "--version"), true),
         )
     }
 }
