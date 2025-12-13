@@ -10,10 +10,18 @@ import kotlin.test.assertEquals
 class MainArgsTest {
     @ParameterizedTest
     @MethodSource("paramsOfTestSubCommand")
-    fun testRepSuffix(argsStr: List<String>, expectedSubCommand: String?) {
+    fun testSubCommand(argsStr: List<String>, expectedSubCommand: String?) {
         val args = MainArgs.of(argsStr)
 
         assertEquals(expectedSubCommand, args.subCommand)
+    }
+
+    @ParameterizedTest
+    @MethodSource("paramsOfTestSubOptions")
+    fun testSubOptions(argsStr: List<String>, expectedSubOptions: List<String>) {
+        val args = MainArgs.of(argsStr)
+
+        assertEquals(expectedSubOptions, args.subOptions)
     }
 
     companion object {
@@ -29,6 +37,23 @@ class MainArgsTest {
             arguments(listOf("grep", "--dummy"), "grep"),
             arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), "grep"),
             arguments(listOf("--rep-suffix=@", "grep", "--dummy"), "grep"),
+        )
+
+        @JvmStatic
+        fun paramsOfTestSubOptions(): Stream<Arguments> = Stream.of(
+            arguments(emptyList<String>(), emptyList<String>()),
+            arguments(listOf("--rep-suffix", "@"), emptyList<String>()),
+            arguments(listOf("--rep-suffix=@"), emptyList<String>()),
+            arguments(listOf("--version"), emptyList<String>()),
+            arguments(listOf("grep"), emptyList<String>()),
+            arguments(listOf("--rep-suffix", "@", "grep"), emptyList<String>()),
+            arguments(listOf("--rep-suffix=@", "grep"), emptyList<String>()),
+            arguments(listOf("grep", "--dummy"), listOf("--dummy")),
+            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), listOf("--dummy")),
+            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), listOf("--dummy")),
+            arguments(listOf("grep", "--dummy", "DUMMY"), listOf("--dummy", "DUMMY")),
+            arguments(listOf("--rep-suffix", "@", "grep", "--dummy", "DUMMY"), listOf("--dummy", "DUMMY")),
+            arguments(listOf("--rep-suffix=@", "grep", "--dummy", "DUMMY"), listOf("--dummy", "DUMMY")),
         )
     }
 }
