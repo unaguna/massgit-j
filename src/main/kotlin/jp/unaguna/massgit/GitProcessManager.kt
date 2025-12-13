@@ -91,21 +91,24 @@ abstract class GitProcessManagerBase {
 }
 
 class GitProcessManager(
-    private val gitSubCommand: String,
-    private val gitSubCommandArgs: List<String>,
-    private val repSuffix: String? = null,
+    private val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
+        requireNotNull(mainArgs.subCommand)
+
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(gitSubCommand)
-        append(gitSubCommandArgs)
+        append(mainArgs.subCommand)
+        append(mainArgs.subOptions)
     }
 
+    private val repSuffixProvider = RepSuffixProvider()
+
     override fun createPrintManager(repo: Repo): PrintManager {
+        val repSuffix = repSuffixProvider.decideRefSuffix(mainArgs)
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}$repSuffix")
         )
     }
 }

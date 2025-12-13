@@ -11,6 +11,7 @@ data class MainArgs(
         VERSION(listOf("--version"), 0),
         REP_SUFFIX(listOf("--rep-suffix"), 1),
         ;
+        val representativeName = names[0]
 
         /**
          * Judge sufficiency of args
@@ -25,6 +26,10 @@ data class MainArgs(
     interface Option {
         val def: OptionDef
         val args: List<String>
+
+        fun getOneArg(): String {
+            return args.getOrElse(0) { throw IllegalArgumentException("the option has 0 or more two arguments") }
+        }
     }
 
     class OptionImpl(override val def: OptionDef) : Option {
@@ -51,6 +56,28 @@ data class MainArgs(
          * @return an option instance. If the option is not used, returns empty list.
          */
         fun of(key: OptionDef): List<Option>
+
+        /**
+         * Returns the specified option argument instance.
+         *
+         * @return only one option instance
+         * @throws IllegalArgumentException if zero or more two options specified
+         */
+        fun getOne(key: OptionDef): Option {
+            val result = of(key)
+            return if (result.size == 1) result[0] else throw IllegalArgumentException(key.representativeName)
+        }
+
+        /**
+         * Returns the specified option argument instance.
+         *
+         * @return only one option instance
+         * @throws IllegalArgumentException if zero or more two options specified
+         */
+        fun getOneOrNull(key: OptionDef): Option? {
+            val result = of(key)
+            return if (result.size == 1) result[0] else null
+        }
     }
 
     private class OptionsImpl private constructor(

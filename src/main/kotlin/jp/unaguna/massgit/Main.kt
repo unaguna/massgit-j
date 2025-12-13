@@ -55,8 +55,7 @@ class Main {
                 }
 
                 mainRunGitProcesses(
-                    mainArgs.subCommand,
-                    mainArgs.subOptions,
+                    mainArgs,
                     conf,
                     repos,
                 )
@@ -69,18 +68,13 @@ class Main {
         }
 
         private fun mainRunGitProcesses(
-            gitSubCommand: String,
-            gitSubCommandOptions: List<String>,
+            mainArgs: MainArgs,
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
             // TODO: repos のマーカーによる絞り込み
 
-            GitProcessManager(
-                gitSubCommand,
-                gitSubCommandOptions,
-                repSuffix = conf.repSuffix,
-            )
+            GitProcessManager(mainArgs)
                 .run(repos, massgitBaseDir = conf.massProjectDir)
         }
 
