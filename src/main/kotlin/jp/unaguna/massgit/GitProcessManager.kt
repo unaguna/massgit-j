@@ -138,7 +138,13 @@ class GitProcessDiffManager(
     }
 
     override fun createPrintManager(repo: Repo): PrintManager = when {
-        mainArgs.subOptions.containsAny("--name-only", "--numstat", "--shortstat") -> PrintManagerThrough(
+        mainArgs.subOptions.containsAny(
+            "--name-only",
+            "--numstat",
+            "--shortstat",
+            "--raw",
+            "--name-status"
+        ) -> PrintManagerThrough(
             LineHeadFilter("${repo.dirname}$repSuffix")
         )
         else -> PrintManagerThrough(
