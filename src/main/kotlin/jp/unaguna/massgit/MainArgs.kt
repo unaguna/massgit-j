@@ -1,5 +1,7 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.exception.MassgitException
+
 data class MainArgs(
     val mainOptions: Options,
     val subCommand: String?,
@@ -69,7 +71,7 @@ data class MainArgs(
             val optionValue = optionParts.getOrNull(1)
 
             val optionDef = mainOptionDef.getOrElse(optionName) {
-                throw IllegalArgumentException("Unknown option: $optionName")
+                throw UnknownOptionException(optionName)
             }
 
             val option = addOption(optionDef)
@@ -86,8 +88,7 @@ data class MainArgs(
 
     companion object {
         private val mainOptionDef: Map<String, OptionDef> = OptionDef.entries
-            .map { it.names.map { name -> Pair(name, it) } }
-            .flatten()
+            .flatMap { it.names.map { name -> Pair(name, it) } }
             .associate { it }
 
         fun of(args: Array<String>): MainArgs {
@@ -134,3 +135,5 @@ data class MainArgs(
         }
     }
 }
+
+private class UnknownOptionException(unknownOption: String) : MassgitException("Unknown option: $unknownOption")
