@@ -31,6 +31,7 @@ class Main {
             exitProcess(0)
         }
 
+        @Suppress("ThrowsCount")
         private fun run(args: Array<String>) {
             val mainArgs = MainArgs.of(args)
 
@@ -50,8 +51,14 @@ class Main {
                     repos,
                 )
             } else if (mainArgs.subCommand != null) {
-                require(!conf.prohibitSubcommand(mainArgs.subCommand)) {
-                    "subcommand '${mainArgs.subCommand}' is prohibited"
+                when (conf.subcommandAcceptation(mainArgs.subCommand)) {
+                    MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
+                        throw ProhibitedSubcommandException(mainArgs.subCommand)
+                    }
+                    MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
+                        throw UnknownSubcommandException(mainArgs.subCommand)
+                    }
+                    MainConfigurations.SubcommandAcceptation.OK -> Unit
                 }
 
                 mainRunGitProcesses(
@@ -91,3 +98,9 @@ class Main {
         }
     }
 }
+
+private class ProhibitedSubcommandException(subcommand: String) :
+    MassgitException("subcommand '$subcommand' is prohibited")
+
+private class UnknownSubcommandException(subcommand: String) :
+    MassgitException("unknown subcommand '$subcommand'")
