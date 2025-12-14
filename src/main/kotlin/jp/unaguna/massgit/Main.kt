@@ -53,10 +53,10 @@ class Main {
             } else if (mainArgs.subCommand != null) {
                 when (conf.subcommandAcceptation(mainArgs.subCommand)) {
                     MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
-                        throw IllegalArgumentException("subcommand '${mainArgs.subCommand}' is prohibited")
+                        throw ProhibitedSubcommandException(mainArgs.subCommand)
                     }
                     MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
-                        throw IllegalArgumentException("unknown subcommand is specified: ${mainArgs.subCommand}")
+                        throw UnknownSubcommandException(mainArgs.subCommand)
                     }
                     MainConfigurations.SubcommandAcceptation.OK -> Unit
                 }
@@ -98,3 +98,9 @@ class Main {
         }
     }
 }
+
+private class ProhibitedSubcommandException(subcommand: String) :
+    MassgitException("subcommand '$subcommand' is prohibited")
+
+private class UnknownSubcommandException(subcommand: String) :
+    MassgitException("unknown subcommand '$subcommand'")
