@@ -49,7 +49,12 @@ class Prop {
         return java.lang.Boolean.parseBoolean(getProperty(key))
     }
 
+    fun getSet(key: Key): Set<String>? {
+        return wrapper.getProperty(key.propertyName)?.split(",")?.map { it.trim() }?.toSet()
+    }
+
     sealed class Key(val propertyName: String, val type: KClass<*> = String::class) {
+        object KnownSubcommands : Key("subcommands.known", Set::class)
         class ProhibitedSubcommands(
             cmd: String,
         ) : Key("subcommands.prohibited.$cmd", Boolean::class)
