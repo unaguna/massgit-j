@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "jp.unaguna"
-version = "0.2.0"
+version = "0.3.0"
 
 sourceSets {
     main {
@@ -24,6 +24,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 }
 

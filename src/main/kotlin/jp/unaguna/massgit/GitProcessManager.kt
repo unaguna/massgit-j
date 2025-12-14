@@ -1,21 +1,35 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.containsAny
+import jp.unaguna.massgit.common.collection.getEither
+import jp.unaguna.massgit.common.collection.submitForEach
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.exception.GitProcessCanceledException
+import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.exception.RepoNotContainUrlException
+import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
+import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 abstract class GitProcessManagerBase {
     protected abstract val cmdTemplate: ProcessArgs
+    protected open val summaryPrinter: SummaryPrinter? = null
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
-    protected open fun createPrintErrorManager(repo: Repo): PrintManager {
+    private fun createPrintErrorManager(errorFilter: PrintFilter): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}: "),
+            errorFilter,
             out = System.err,
         )
+    }
+
+    private fun errorFilter(repo: Repo): PrintFilter {
+        return LineHeadFilter("${repo.dirname}: ")
     }
 
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null) {
@@ -24,54 +38,126 @@ abstract class GitProcessManagerBase {
         // TODO: 同時に実行するスレッド数を指定できるようにする
         val executor = Executors.newFixedThreadPool(1)
 
-        repos.map { repo ->
-            val processBuilder = ProcessBuilder(cmdTemplate.render(repo)).apply {
-                if (massgitBaseDir != null) {
-                    directory(massgitBaseDir.toFile())
-                }
-            }
-
-            executor.submit {
-                val process = processBuilder.start()
-                createPrintManager(repo).use { printManager ->
-                    createPrintErrorManager(repo).use { printErrorManager ->
-                        val processController = ProcessController(
-                            process = process,
-                            printManager = printManager,
-                            printErrorManager = printErrorManager,
-                        )
-
-                        processController.readOutput()
+        val executionFutures = repos.submitForEach(executor) { repo ->
+            val errorFilter = errorFilter(repo)
+            runCatching {
+                val processBuilder = runCatching {
+                    ProcessBuilder(cmdTemplate.render(repo)).apply {
+                        if (massgitBaseDir != null) {
+                            directory(massgitBaseDir.toFile())
+                        }
                     }
+                }.getOrElse { t -> throw GitProcessCanceledException(null, t) }
+
+                val process = processBuilder.start()
+                createPrintManagers(repo, errorFilter).use { (printManager, printErrorManager) ->
+                    val processController = ProcessController(
+                        process = process,
+                        printManager = printManager,
+                        printErrorManager = printErrorManager,
+                    )
+
+                    processController.readOutput()
                 }
-            }
+                process.waitFor()
+                process
+            }.onFailure { e ->
+                val baseMsg = if (e is MassgitException) {
+                    e.consoleMessage
+                } else if (e.message != null) {
+                    "some error occurred: ${e.message}"
+                } else {
+                    "some error occurred"
+                }
+                val message = errorFilter.mapLine(baseMsg)
+
+                System.err.println(message)
+                // TODO: 例外をログ出力
+            }.getEither()
         }
 
         executor.shutdown()
         while (!executor.isTerminated) {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
+
+        summaryPrinter?.printSummary(executionFutures)
+    }
+
+    private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {
+        return ClosablePair.of(
+            { createPrintManager(repo) },
+            { createPrintErrorManager(errorFilter) }
+        )
+    }
+
+    companion object {
+        const val REP_SUFFIX_DEFAULT = ": "
+        const val REP_SUFFIX_PATH_SEP = "/"
     }
 }
 
-class GitProcessManager(
-    private val gitSubCommand: String,
-    private val gitSubCommandArgs: List<String>,
-    private val repSuffix: String? = null,
+open class GitProcessManager protected constructor(
+    protected val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
+        requireNotNull(mainArgs.subCommand)
+
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(gitSubCommand)
-        append(gitSubCommandArgs)
+        append(mainArgs.subCommand)
+        append(mainArgs.subOptions)
     }
+
+    open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}$repSuffix")
         )
     }
+
+    companion object {
+        fun construct(mainArgs: MainArgs): GitProcessManager {
+            return when (mainArgs.subCommand) {
+                "diff" -> GitProcessDiffManager(mainArgs)
+                "grep", "ls-files" -> GitProcessFilepathManager(mainArgs)
+                else -> GitProcessManager(mainArgs)
+            }
+        }
+    }
+}
+
+class GitProcessDiffManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
+        mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
+        else -> REP_SUFFIX_DEFAULT
+    }
+
+    override fun createPrintManager(repo: Repo): PrintManager = when {
+        mainArgs.subOptions.containsAny(
+            "--name-only",
+            "--numstat",
+            "--shortstat",
+            "--raw",
+            "--name-status"
+        ) -> PrintManagerThrough(
+            LineHeadFilter("${repo.dirname}$repSuffix")
+        )
+        else -> PrintManagerThrough(
+            DoNothingFilter,
+            header = "${repo.dirname}$repSuffix"
+        )
+    }
+}
+
+class GitProcessFilepathManager(
+    mainArgs: MainArgs,
+) : GitProcessManager(mainArgs) {
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
 }
 
 class CloneProcessManager(
@@ -81,14 +167,17 @@ class CloneProcessManager(
         append("git")
         append("clone")
         append { r ->
-            val url = requireNotNull(r.url)
+            val url = r.url
+                ?: throw RepoNotContainUrlException(r.dirname)
             listOf(url, r.dirname)
         }
     }
 
+    override val summaryPrinter = RegularSummaryPrinter()
+
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
-            LineHeadFilter("${repo.dirname}${repSuffix ?: ": "}")
+            LineHeadFilter("${repo.dirname}${repSuffix ?: REP_SUFFIX_DEFAULT}")
         )
     }
 }
