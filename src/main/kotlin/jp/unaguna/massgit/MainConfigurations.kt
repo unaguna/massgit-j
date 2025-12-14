@@ -17,7 +17,20 @@ class MainConfigurations(
 
     val repSuffix: String? = options.getRepSuffix()
 
+    fun subcommandAcceptation(subcommand: String): SubcommandAcceptation {
+        return when {
+            prohibitSubcommand(subcommand) -> SubcommandAcceptation.PROHIBITED
+            else -> SubcommandAcceptation.OK
+        }
+    }
+
     fun prohibitSubcommand(subcommand: String): Boolean {
         return prop.getBoolean(Prop.Key.ProhibitedSubcommands(subcommand))
+    }
+
+    enum class SubcommandAcceptation {
+        OK,
+        PROHIBITED,
+        UNKNOWN,
     }
 }
