@@ -1,5 +1,10 @@
 package jp.unaguna.massgit.common.syntaxtree
 
+private const val PRIORITY_VAR = Int.MAX_VALUE
+private const val PRIORITY_OR = 1
+private const val PRIORITY_AND = 2
+private const val PRIORITY_NOT = 10
+
 sealed class BooleanTreeNode {
     var parent: BooleanTreeNode? = null
 
@@ -96,7 +101,7 @@ class BooleanRootNode : BooleanUnaryOperatorNode() {
 }
 
 class BooleanNotOperatorNode : BooleanUnaryOperatorNode() {
-    override val priority: Int = 10
+    override val priority: Int = PRIORITY_NOT
     override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
         return child?.evaluate(valueProvider)?.not()
             ?: throw IncompleteTreeException()
@@ -107,7 +112,7 @@ class BooleanVariableNodeImpl(override val name: String) : BooleanTreeNode(), Bo
     override val childCount: Int = 0
     override fun getChildOrNull(index: Int): BooleanTreeNode? = null
     override fun popChildOrNull(index: Int): BooleanTreeNode? = null
-    override val priority: Int = Int.MAX_VALUE
+    override val priority: Int = PRIORITY_VAR
     override val vacancy: Int = 0
     override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean = valueProvider.getValue(this)
     override fun appendChild(value: BooleanTreeNode) {
@@ -161,7 +166,7 @@ sealed class BooleanBinaryOperatorNode : BooleanTreeNode() {
 }
 
 class BooleanOrOperatorNode : BooleanBinaryOperatorNode() {
-    override val priority: Int = 1
+    override val priority: Int = PRIORITY_OR
     override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
         val left = left ?: throw IncompleteTreeException()
         val right = right ?: throw IncompleteTreeException()
@@ -171,7 +176,7 @@ class BooleanOrOperatorNode : BooleanBinaryOperatorNode() {
 }
 
 class BooleanAndOperatorNode : BooleanBinaryOperatorNode() {
-    override val priority: Int = 2
+    override val priority: Int = PRIORITY_AND
     override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
         val left = left ?: throw IncompleteTreeException()
         val right = right ?: throw IncompleteTreeException()
