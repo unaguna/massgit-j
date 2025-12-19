@@ -62,15 +62,9 @@ sealed class BooleanTreeNode {
     }
 }
 
-class BooleanRootNode : BooleanTreeNode() {
+sealed class BooleanUnaryOperatorNode : BooleanTreeNode() {
     var child: BooleanTreeNode? = null
-    override val priority: Int = Int.MIN_VALUE
     override val vacancy: Int get() = if (child == null) 1 else 0
-
-    override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
-        return child?.evaluate(valueProvider)
-            ?: throw IncompleteTreeException()
-    }
 
     override val childCount: Int = 1
     override fun getChildOrNull(index: Int) = when (index) {
@@ -90,6 +84,14 @@ class BooleanRootNode : BooleanTreeNode() {
         }
 
         value.parent = this
+    }
+}
+
+class BooleanRootNode : BooleanUnaryOperatorNode() {
+    override val priority: Int = Int.MIN_VALUE
+    override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
+        return child?.evaluate(valueProvider)
+            ?: throw IncompleteTreeException()
     }
 }
 
