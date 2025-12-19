@@ -22,15 +22,29 @@ class BooleanTreeEvaluateTest {
     @ParameterizedTest
     @CsvSource(
         value = [
+            "not var1,false",
+            "not abc,true",
+        ]
+    )
+    fun `evaluate 'not' operator`(expression: String, expectedValue: Boolean) {
+        val valueProvider = ValueProvider.fromTrueSet(setOf("var1", "var2"))
+        val tree = BooleanTreeImpl.decode(expression)
+
+        assertEquals(expectedValue, tree.evaluate(valueProvider))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        value = [
             "var1 or var2,true",
             "var1 or abc,true",
             "abc or var2,true",
             "abc or def,false",
         ]
     )
-    fun `evaluate 'or' operator`(variableName: String, expectedValue: Boolean) {
+    fun `evaluate 'or' operator`(expression: String, expectedValue: Boolean) {
         val valueProvider = ValueProvider.fromTrueSet(setOf("var1", "var2"))
-        val tree = BooleanTreeImpl.decode(variableName)
+        val tree = BooleanTreeImpl.decode(expression)
 
         assertEquals(expectedValue, tree.evaluate(valueProvider))
     }
@@ -44,9 +58,9 @@ class BooleanTreeEvaluateTest {
             "abc and def,false",
         ]
     )
-    fun `evaluate 'and' operator`(variableName: String, expectedValue: Boolean) {
+    fun `evaluate 'and' operator`(expression: String, expectedValue: Boolean) {
         val valueProvider = ValueProvider.fromTrueSet(setOf("var1", "var2"))
-        val tree = BooleanTreeImpl.decode(variableName)
+        val tree = BooleanTreeImpl.decode(expression)
 
         assertEquals(expectedValue, tree.evaluate(valueProvider))
     }
@@ -67,9 +81,9 @@ class BooleanTreeEvaluateTest {
             "abc or def and def or var3,true",
         ]
     )
-    fun `evaluate 2 operator`(variableName: String, expectedValue: Boolean) {
+    fun `evaluate 2 operator`(expression: String, expectedValue: Boolean) {
         val valueProvider = ValueProvider.fromTrueSet(setOf("var1", "var2", "var3"))
-        val tree = BooleanTreeImpl.decode(variableName)
+        val tree = BooleanTreeImpl.decode(expression)
 
         assertEquals(expectedValue, tree.evaluate(valueProvider))
     }
