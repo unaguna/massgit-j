@@ -63,7 +63,7 @@ class BooleanTreeImpl private constructor(expression: String) : BooleanTree {
             return when (token) {
                 "or" -> BooleanOrOperatorNode()
                 "and" -> BooleanAndOperatorNode()
-                "not" -> TODO("Not implemented yet")
+                "not" -> BooleanNotOperatorNode()
                 else -> BooleanVariableNodeImpl(token)
             }
         }

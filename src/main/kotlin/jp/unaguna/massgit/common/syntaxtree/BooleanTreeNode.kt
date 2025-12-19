@@ -95,6 +95,14 @@ class BooleanRootNode : BooleanUnaryOperatorNode() {
     }
 }
 
+class BooleanNotOperatorNode : BooleanUnaryOperatorNode() {
+    override val priority: Int = 10
+    override fun evaluate(valueProvider: ValueProvider<Boolean>): Boolean {
+        return child?.evaluate(valueProvider)?.not()
+            ?: throw IncompleteTreeException()
+    }
+}
+
 class BooleanVariableNodeImpl(override val name: String) : BooleanTreeNode(), BooleanVariableNode {
     override val childCount: Int = 0
     override fun getChildOrNull(index: Int): BooleanTreeNode? = null
