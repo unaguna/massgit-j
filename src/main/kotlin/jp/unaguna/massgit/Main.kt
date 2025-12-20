@@ -45,10 +45,15 @@ class Main {
                 Repo.loadFromFile(conf.reposFilePath)
             }.getOrElse { t -> throw LoadingReposFailedException(t) }
 
+            val reposFiltered = when (val markerConditions = conf.markerConditions) {
+                null -> repos
+                else -> repos.filter { markerConditions.satisfies(it.markers) }
+            }
+
             if (mainArgs.subCommand == "mg-clone") {
                 runGitCloneProcesses(
                     conf,
-                    repos,
+                    reposFiltered,
                 )
             } else if (mainArgs.subCommand != null) {
                 when (conf.subcommandAcceptation(mainArgs.subCommand)) {
@@ -64,7 +69,7 @@ class Main {
                 mainRunGitProcesses(
                     mainArgs,
                     conf,
-                    repos,
+                    reposFiltered,
                 )
             }
         }
@@ -79,8 +84,6 @@ class Main {
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
-            // TODO: repos のマーカーによる絞り込み
-
             GitProcessManager.construct(mainArgs)
                 .run(repos, massgitBaseDir = conf.massProjectDir)
         }
@@ -89,8 +92,6 @@ class Main {
             conf: MainConfigurations,
             repos: List<Repo>,
         ) {
-            // TODO: repos のマーカーによる絞り込み
-
             CloneProcessManager(
                 repSuffix = conf.repSuffix,
             )

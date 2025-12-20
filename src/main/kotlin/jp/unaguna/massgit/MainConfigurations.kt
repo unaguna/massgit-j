@@ -1,6 +1,8 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.AllSet
+import jp.unaguna.massgit.common.syntaxtree.BooleanTree
+import jp.unaguna.massgit.common.syntaxtree.ValueProvider
 import jp.unaguna.massgit.configfile.Prop
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -18,6 +20,10 @@ class MainConfigurations(
 
     val knownSubcommands: Set<String> by lazy {
         prop.getSet(Prop.Key.KnownSubcommands) ?: AllSet()
+    }
+
+    val markerConditions: MarkerConditions? by lazy {
+        options.getMarker()?.let { MarkerConditions(it) }
     }
 
     val repSuffix: String? = options.getRepSuffix()
@@ -42,5 +48,14 @@ class MainConfigurations(
         OK,
         PROHIBITED,
         UNKNOWN,
+    }
+}
+
+class MarkerConditions(private val expression: BooleanTree) {
+    constructor(expression: String) : this(BooleanTree.decode(expression))
+
+    fun satisfies(markers: List<String>): Boolean {
+        val vars = ValueProvider.fromTrueSet(markers)
+        return expression.evaluate(vars)
     }
 }

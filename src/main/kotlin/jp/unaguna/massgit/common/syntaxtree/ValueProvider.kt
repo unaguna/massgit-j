@@ -7,6 +7,9 @@ interface ValueProvider<T> {
         fun fromTrueSet(trueVariableNames: Set<String>): ValueProvider<Boolean> {
             return BooleanValueProvider(trueVariableNames)
         }
+        fun fromTrueSet(trueVariableNames: Collection<String>): ValueProvider<Boolean> {
+            return fromTrueSet(trueVariableNames.toSet())
+        }
     }
 }
 
