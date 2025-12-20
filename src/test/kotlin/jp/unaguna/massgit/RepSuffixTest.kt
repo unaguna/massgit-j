@@ -6,16 +6,17 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class RepSuffixTest {
     @ParameterizedTest
     @MethodSource("paramsOfTestRepSuffix")
     fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String) {
         val args = MainArgs.of(argsStr)
-        val gitProcessManager = GitProcessRegularManager.construct(args)
+        val gitProcessManager = GitProcessManager.regular(args)
 
+        assertIs<GitProcessRegularManager>(gitProcessManager)
         val actualRepSuffix = gitProcessManager.repSuffix
-
         assertEquals(expectedRepSuffix, actualRepSuffix)
     }
 

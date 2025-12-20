@@ -61,7 +61,7 @@ class Main {
         conf: MainConfigurations,
         repos: List<Repo>,
     ) {
-        GitProcessRegularManager.construct(mainArgs)
+        GitProcessManager.regular(mainArgs)
             .run(repos, massgitBaseDir = conf.massProjectDir)
     }
 
@@ -69,7 +69,7 @@ class Main {
         conf: MainConfigurations,
         repos: List<Repo>,
     ) {
-        CloneProcessManager(
+        GitProcessManager.cloneAll(
             repSuffix = conf.repSuffix,
         )
             .run(repos, massgitBaseDir = conf.massProjectDir)

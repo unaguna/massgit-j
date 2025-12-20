@@ -18,6 +18,16 @@ import java.util.concurrent.TimeUnit
 
 interface GitProcessManager {
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null)
+
+    companion object {
+        fun regular(mainArgs: MainArgs): GitProcessManager {
+            return GitProcessRegularManager.construct(mainArgs)
+        }
+
+        fun cloneAll(repSuffix: String?): GitProcessManager {
+            return CloneProcessManager(repSuffix)
+        }
+    }
 }
 
 abstract class GitProcessManagerBase : GitProcessManager {
