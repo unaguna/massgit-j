@@ -61,7 +61,7 @@ class Main {
         conf: MainConfigurations,
         repos: List<Repo>,
     ) {
-        GitProcessManager.construct(mainArgs)
+        GitProcessRegularManager.construct(mainArgs)
             .run(repos, massgitBaseDir = conf.massProjectDir)
     }
 

@@ -16,7 +16,11 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-abstract class GitProcessManagerBase {
+interface GitProcessManager {
+    fun run(repos: List<Repo>, massgitBaseDir: Path? = null)
+}
+
+abstract class GitProcessManagerBase : GitProcessManager {
     protected abstract val cmdTemplate: ProcessArgs
     protected open val summaryPrinter: SummaryPrinter? = null
     protected abstract fun createPrintManager(repo: Repo): PrintManager
@@ -32,7 +36,7 @@ abstract class GitProcessManagerBase {
         return LineHeadFilter("${repo.dirname}: ")
     }
 
-    fun run(repos: List<Repo>, massgitBaseDir: Path? = null) {
+    override fun run(repos: List<Repo>, massgitBaseDir: Path?) {
         require(repos.isNotEmpty())
 
         // TODO: 同時に実行するスレッド数を指定できるようにする
@@ -97,7 +101,7 @@ abstract class GitProcessManagerBase {
     }
 }
 
-open class GitProcessManager protected constructor(
+open class GitProcessRegularManager protected constructor(
     protected val mainArgs: MainArgs,
 ) : GitProcessManagerBase() {
     override val cmdTemplate = buildProcessArgs {
@@ -119,11 +123,11 @@ open class GitProcessManager protected constructor(
     }
 
     companion object {
-        fun construct(mainArgs: MainArgs): GitProcessManager {
+        fun construct(mainArgs: MainArgs): GitProcessRegularManager {
             return when (mainArgs.subCommand) {
                 "diff" -> GitProcessDiffManager(mainArgs)
                 "grep", "ls-files" -> GitProcessFilepathManager(mainArgs)
-                else -> GitProcessManager(mainArgs)
+                else -> GitProcessRegularManager(mainArgs)
             }
         }
     }
@@ -131,7 +135,7 @@ open class GitProcessManager protected constructor(
 
 class GitProcessDiffManager(
     mainArgs: MainArgs,
-) : GitProcessManager(mainArgs) {
+) : GitProcessRegularManager(mainArgs) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
@@ -156,7 +160,7 @@ class GitProcessDiffManager(
 
 class GitProcessFilepathManager(
     mainArgs: MainArgs,
-) : GitProcessManager(mainArgs) {
+) : GitProcessRegularManager(mainArgs) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
 }
 

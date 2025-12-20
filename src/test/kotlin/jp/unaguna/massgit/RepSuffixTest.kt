@@ -12,7 +12,7 @@ class RepSuffixTest {
     @MethodSource("paramsOfTestRepSuffix")
     fun testRepSuffix(argsStr: List<String>, expectedRepSuffix: String) {
         val args = MainArgs.of(argsStr)
-        val gitProcessManager = GitProcessManager.construct(args)
+        val gitProcessManager = GitProcessRegularManager.construct(args)
 
         val actualRepSuffix = gitProcessManager.repSuffix
 
