@@ -5,7 +5,11 @@ import java.net.URLClassLoader
 import java.util.*
 import kotlin.reflect.KClass
 
-class Prop {
+class Prop(
+    defaultUrl: URL? = null,
+    systemUrl: URL? = null,
+    localUrl: URL? = null,
+) {
     private val default: Properties = Properties()
     private val system: Properties = Properties(default)
     private val wrapper: Properties = Properties(system)
@@ -17,14 +21,14 @@ class Prop {
     private val loader = URLClassLoader(loaderUrls, this.javaClass.classLoader)
 
     init {
-        load(default, "massgit-default.properties")
-        load(system, "massgit-system.properties")
-        load(wrapper, "massgit-local.properties")
+        load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
+        load(system, systemUrl ?: loader.getResource("massgit-system.properties"))
+        load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
     }
 
-    private fun load(prop: Properties, name: String) {
+    private fun load(prop: Properties, url: URL?) {
         runCatching {
-            loader.getResourceAsStream(name)?.use { inputStream ->
+            url?.openStream()?.use { inputStream ->
                 prop.load(inputStream)
             }
         }.onFailure {
