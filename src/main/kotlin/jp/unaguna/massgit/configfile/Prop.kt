@@ -44,9 +44,9 @@ class Prop {
         return wrapper.getProperty(key.propertyName)
     }
 
-    fun getBoolean(key: Key): Boolean {
+    fun getBoolean(key: Key): Boolean? {
         require(key.type == Boolean::class) { "type of property '${key.propertyName}' is not boolean" }
-        return java.lang.Boolean.parseBoolean(getProperty(key))
+        return getProperty(key)?.let { java.lang.Boolean.parseBoolean(it) }
     }
 
     fun getSet(key: Key): Set<String>? {
@@ -55,6 +55,7 @@ class Prop {
 
     sealed class Key(val propertyName: String, val type: KClass<*> = String::class) {
         object KnownSubcommands : Key("subcommands.known", Set::class)
+        object ProhibitedSubcommandDefault : Key("subcommands.prohibited.default", Boolean::class)
         class ProhibitedSubcommands(
             cmd: String,
         ) : Key("subcommands.prohibited.$cmd", Boolean::class)

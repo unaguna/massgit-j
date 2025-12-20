@@ -37,7 +37,9 @@ class MainConfigurations(
     }
 
     fun prohibitSubcommand(subcommand: String): Boolean {
-        return prop.getBoolean(Prop.Key.ProhibitedSubcommands(subcommand))
+        val defaultProhibited = prop.getBoolean(Prop.Key.ProhibitedSubcommandDefault) ?: false
+
+        return prop.getBoolean(Prop.Key.ProhibitedSubcommands(subcommand)) ?: defaultProhibited
     }
 
     fun subcommandIsUnknown(subcommand: String): Boolean {
