@@ -20,5 +20,6 @@
     <requires64Bit>false</requires64Bit>
     <minVersion>8</minVersion>
     <maxVersion></maxVersion>
+    <opt>-Dmassgit.system-dir=&quot;%EXEDIR%&quot;</opt>
   </jre>
 </launch4jConfig>
