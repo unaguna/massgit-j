@@ -44,9 +44,15 @@ class BooleanTreeImpl private constructor(expression: String) : BooleanTree {
         private fun splitTokens(expression: String): List<String> {
             val tokens = mutableListOf<String>()
 
-            // expression をトークンに分割する。
-            // TODO: 文字種が変わる個所もトークンの区切りとして扱う
-            expression.split(Regex("\\s+")).forEach { tokens.add(it.trim()) }
+            // Split the expression into tokens.
+            // Parentheses are treated as separate tokens even when attached to other characters.
+            expression
+                .replace("(", " ( ")
+                .replace(")", " ) ")
+                .splitToSequence(Regex("\\s+"))
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .forEach { tokens.add(it) }
 
             return tokens
         }

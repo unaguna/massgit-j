@@ -1,5 +1,6 @@
 package jp.unaguna.massgit.common.syntaxtree
 
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import kotlin.test.assertEquals
@@ -25,6 +26,8 @@ class BooleanTreeDecodeTest {
         value = [
             "not var1",
             "not  var1",
+            "not (var1)",
+            "(not var1)",
         ]
     )
     fun `decode 'not' parameter`(expression: String) {
@@ -75,6 +78,8 @@ class BooleanTreeDecodeTest {
     @CsvSource(
         value = [
             "var1 and var2 and var3",
+            "(var1 and var2)and var3",
+            "(var1 and var2) and var3",
             "( var1 and var2 ) and var3",
         ]
     )
@@ -95,6 +100,8 @@ class BooleanTreeDecodeTest {
     @CsvSource(
         value = [
             "var1 or var2 or var3",
+            "(var1 or var2)or var3",
+            "(var1 or var2) or var3",
             "( var1 or var2 ) or var3",
         ]
     )
@@ -115,6 +122,8 @@ class BooleanTreeDecodeTest {
     @CsvSource(
         value = [
             "var1 or var2 and var3",
+            "var1 or(var2 and var3)",
+            "var1 or (var2 and var3)",
             "var1 or ( var2 and var3 )",
         ]
     )
@@ -135,6 +144,8 @@ class BooleanTreeDecodeTest {
     @CsvSource(
         value = [
             "var1 and var2 or var3",
+            "(var1 and var2)or var3",
+            "(var1 and var2) or var3",
             "( var1 and var2 ) or var3",
         ]
     )
@@ -221,5 +232,57 @@ class BooleanTreeDecodeTest {
         val rightChild = assertIs<BooleanVariableNode>(right.child)
         assertEquals(left.name, "var1")
         assertEquals(rightChild.name, "var2")
+    }
+
+    @Test
+    fun `decode brackets - simple`() {
+        val expression = "(var1 or var2) and var3"
+        val root = BooleanTreeImpl.decodeToNode(expression)
+
+        assertIs<BooleanAndOperatorNode>(root)
+        val left = assertIs<BooleanOrOperatorNode>(root.left)
+        val right = assertIs<BooleanVariableNode>(root.right)
+        val leftLeft = assertIs<BooleanVariableNode>(left.left)
+        val leftRight = assertIs<BooleanVariableNode>(left.right)
+        assertEquals(leftLeft.name, "var1")
+        assertEquals(leftRight.name, "var2")
+        assertEquals(right.name, "var3")
+    }
+
+    @Test
+    fun `decode brackets - parallel brackets`() {
+        val expression = "(var1 or var2) and not(var3 or var4)"
+        val root = BooleanTreeImpl.decodeToNode(expression)
+
+        assertIs<BooleanAndOperatorNode>(root)
+        val left = assertIs<BooleanOrOperatorNode>(root.left)
+        val right = assertIs<BooleanNotOperatorNode>(root.right)
+        val leftLeft = assertIs<BooleanVariableNode>(left.left)
+        val leftRight = assertIs<BooleanVariableNode>(left.right)
+        val rightChild = assertIs<BooleanOrOperatorNode>(right.child)
+        val rightChildLeft = assertIs<BooleanVariableNode>(rightChild.left)
+        val rightChildRight = assertIs<BooleanVariableNode>(rightChild.right)
+        assertEquals(leftLeft.name, "var1")
+        assertEquals(leftRight.name, "var2")
+        assertEquals(rightChildLeft.name, "var3")
+        assertEquals(rightChildRight.name, "var4")
+    }
+
+    @Test
+    fun `decode brackets - nested brackets`() {
+        val expression = "(var1 or (var2 or var3)) and var4"
+        val root = BooleanTreeImpl.decodeToNode(expression)
+
+        assertIs<BooleanAndOperatorNode>(root)
+        val left = assertIs<BooleanOrOperatorNode>(root.left)
+        val right = assertIs<BooleanVariableNode>(root.right)
+        val leftLeft = assertIs<BooleanVariableNode>(left.left)
+        val leftRight = assertIs<BooleanOrOperatorNode>(left.right)
+        val leftRightLeft = assertIs<BooleanVariableNode>(leftRight.left)
+        val leftRightRight = assertIs<BooleanVariableNode>(leftRight.right)
+        assertEquals(leftLeft.name, "var1")
+        assertEquals(leftRightLeft.name, "var2")
+        assertEquals(leftRightRight.name, "var3")
+        assertEquals(right.name, "var4")
     }
 }
