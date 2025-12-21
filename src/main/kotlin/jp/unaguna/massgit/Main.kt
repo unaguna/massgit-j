@@ -5,14 +5,45 @@ import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
 import kotlin.system.exitProcess
 
-@Suppress("UtilityClassWithPublicConstructor")
 class Main {
+    fun run(
+        mainArgs: MainArgs,
+        confInj: MainConfigurations? = null,
+        reposInj: List<Repo>? = null,
+        gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
+    ) {
+        if (mainArgs.mainOptions.isVersion()) {
+            showVersion()
+            return
+        }
+
+        val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
+        val repos = reposInj ?: runCatching {
+            Repo.loadFromFile(conf.reposFilePath)
+        }.getOrElse { t -> throw LoadingReposFailedException(t) }
+
+        val reposFiltered = when (val markerConditions = conf.markerConditions) {
+            null -> repos
+            else -> repos.filter { markerConditions.satisfies(it.markers) }
+        }
+
+        val gitProcessManagerFactory = gitProcessManagerFactoryInj
+            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
+        val gitProcessManager = gitProcessManagerFactory.create()
+        gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
+    }
+
+    private fun showVersion() {
+        val version = VersionProperties.getVersion()
+        println("massgit on java $version")
+    }
+
     companion object {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
             runCatching {
-                run(args)
+                Main().run(mainArgs = MainArgs.of(args))
             }.onFailure { e ->
                 val message = if (e is MassgitException) {
                     e.consoleMessage
@@ -30,71 +61,35 @@ class Main {
             // TODO: 実行結果によって終了コードを変える
             exitProcess(0)
         }
+    }
+}
 
-        @Suppress("ThrowsCount")
-        private fun run(args: Array<String>) {
-            val mainArgs = MainArgs.of(args)
-
-            if (mainArgs.mainOptions.isVersion()) {
-                showVersion()
-                return
-            }
-
-            val conf = MainConfigurations(mainArgs.mainOptions)
-            val repos = runCatching {
-                Repo.loadFromFile(conf.reposFilePath)
-            }.getOrElse { t -> throw LoadingReposFailedException(t) }
-
-            if (mainArgs.subCommand == "mg-clone") {
-                runGitCloneProcesses(
-                    conf,
-                    repos,
-                )
-            } else if (mainArgs.subCommand != null) {
-                when (conf.subcommandAcceptation(mainArgs.subCommand)) {
-                    MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
-                        throw ProhibitedSubcommandException(mainArgs.subCommand)
-                    }
-                    MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
-                        throw UnknownSubcommandException(mainArgs.subCommand)
-                    }
-                    MainConfigurations.SubcommandAcceptation.OK -> Unit
-                }
-
-                mainRunGitProcesses(
-                    mainArgs,
-                    conf,
-                    repos,
-                )
-            }
+private class GitProcessManagerFactoryImpl(
+    private val mainArgs: MainArgs,
+    private val conf: MainConfigurations,
+) : GitProcessManagerFactory {
+    @Suppress("ThrowsCount")
+    override fun create(): GitProcessManager {
+        requireNotNull(mainArgs.subCommand) {
+            throw UnknownSubcommandException("")
         }
 
-        private fun showVersion() {
-            val version = VersionProperties.getVersion()
-            println("massgit on java $version")
-        }
-
-        private fun mainRunGitProcesses(
-            mainArgs: MainArgs,
-            conf: MainConfigurations,
-            repos: List<Repo>,
-        ) {
-            // TODO: repos のマーカーによる絞り込み
-
-            GitProcessManager.construct(mainArgs)
-                .run(repos, massgitBaseDir = conf.massProjectDir)
-        }
-
-        private fun runGitCloneProcesses(
-            conf: MainConfigurations,
-            repos: List<Repo>,
-        ) {
-            // TODO: repos のマーカーによる絞り込み
-
-            CloneProcessManager(
+        if (mainArgs.subCommand == "mg-clone") {
+            return GitProcessManager.cloneAll(
                 repSuffix = conf.repSuffix,
             )
-                .run(repos, massgitBaseDir = conf.massProjectDir)
+        } else {
+            when (conf.subcommandAcceptation(mainArgs.subCommand)) {
+                MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
+                    throw ProhibitedSubcommandException(mainArgs.subCommand)
+                }
+                MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
+                    throw UnknownSubcommandException(mainArgs.subCommand)
+                }
+                MainConfigurations.SubcommandAcceptation.OK -> Unit
+            }
+
+            return GitProcessManager.regular(mainArgs)
         }
     }
 }

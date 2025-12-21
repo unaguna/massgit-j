@@ -5,7 +5,11 @@ import java.net.URLClassLoader
 import java.util.*
 import kotlin.reflect.KClass
 
-class Prop {
+class Prop(
+    defaultUrl: URL? = null,
+    systemUrl: URL? = null,
+    localUrl: URL? = null,
+) {
     private val default: Properties = Properties()
     private val system: Properties = Properties(default)
     private val wrapper: Properties = Properties(system)
@@ -17,14 +21,14 @@ class Prop {
     private val loader = URLClassLoader(loaderUrls, this.javaClass.classLoader)
 
     init {
-        load(default, "massgit-default.properties")
-        load(system, "massgit-system.properties")
-        load(wrapper, "massgit-local.properties")
+        load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
+        load(system, systemUrl ?: loader.getResource("massgit-system.properties"))
+        load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
     }
 
-    private fun load(prop: Properties, name: String) {
+    private fun load(prop: Properties, url: URL?) {
         runCatching {
-            loader.getResourceAsStream(name)?.use { inputStream ->
+            url?.openStream()?.use { inputStream ->
                 prop.load(inputStream)
             }
         }.onFailure {
@@ -44,9 +48,9 @@ class Prop {
         return wrapper.getProperty(key.propertyName)
     }
 
-    fun getBoolean(key: Key): Boolean {
+    fun getBoolean(key: Key): Boolean? {
         require(key.type == Boolean::class) { "type of property '${key.propertyName}' is not boolean" }
-        return java.lang.Boolean.parseBoolean(getProperty(key))
+        return getProperty(key)?.let { java.lang.Boolean.parseBoolean(it) }
     }
 
     fun getSet(key: Key): Set<String>? {
@@ -55,6 +59,7 @@ class Prop {
 
     sealed class Key(val propertyName: String, val type: KClass<*> = String::class) {
         object KnownSubcommands : Key("subcommands.known", Set::class)
+        object ProhibitedSubcommandDefault : Key("subcommands.prohibited.default", Boolean::class)
         class ProhibitedSubcommands(
             cmd: String,
         ) : Key("subcommands.prohibited.$cmd", Boolean::class)
