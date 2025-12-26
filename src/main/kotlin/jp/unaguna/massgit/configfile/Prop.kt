@@ -1,7 +1,6 @@
 package jp.unaguna.massgit.configfile
 
 import java.net.URL
-import java.net.URLClassLoader
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -14,11 +13,7 @@ class Prop(
     private val system: Properties = Properties(default)
     private val wrapper: Properties = Properties(system)
 
-    private val loaderUrls: Array<URL> = listOfNotNull(
-        SystemProp.systemDir?.toUri()?.toURL(),
-    )
-        .toTypedArray()
-    private val loader = URLClassLoader(loaderUrls, this.javaClass.classLoader)
+    private val loader = this.javaClass.classLoader
 
     init {
         load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
