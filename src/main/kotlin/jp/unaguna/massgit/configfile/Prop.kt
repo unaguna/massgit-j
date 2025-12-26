@@ -1,8 +1,12 @@
 package jp.unaguna.massgit.configfile
 
+import jp.unaguna.massgit.Main
 import java.net.URL
 import java.net.URLClassLoader
+import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.isDirectory
+import kotlin.io.path.toPath
 import kotlin.reflect.KClass
 
 class Prop(
@@ -22,8 +26,34 @@ class Prop(
 
     init {
         load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
-        load(system, systemUrl ?: loader.getResource("massgit-system.properties"))
+        load(
+            system,
+            systemUrl ?: getSystemDir()?.resolve("massgit-system.properties")?.toUri()?.toURL(),
+        )
         load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
+    }
+
+    @Suppress("ReturnCount")
+    private fun getSystemDir(): Path? {
+        SystemProp.getSystemDir()?.let { return it }
+
+        // If launched by executing an EXE file, obtain the path to that file;
+        // if launched via the java command, obtain the path to the JAR file.
+        val fromClassLocation = runCatching {
+            val codeSource = Main::class.java.protectionDomain.codeSource?.location?.toURI()?.toPath()
+            when {
+                codeSource == null -> null
+                codeSource.isDirectory() -> codeSource
+                else -> codeSource.parent
+            }
+        }.onFailure {
+            // TODO: ログ出力
+        }.getOrNull()
+        if (fromClassLocation != null) {
+            return fromClassLocation
+        }
+
+        return null
     }
 
     private fun load(prop: Properties, url: URL?) {
@@ -70,7 +100,10 @@ class Prop(
         fun main(args: Array<String>) {
             val prop = Prop()
 
-            prop.wrapper.list(System.out)
+            // Don't use `prop.wrapper.list(System.out)`;  long values are truncated.
+            prop.propertyNames().iterator().forEach {
+                println("!$it=${prop.wrapper.getProperty(it as String)}")
+            }
         }
     }
 }
