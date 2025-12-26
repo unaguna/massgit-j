@@ -18,18 +18,19 @@ class Main {
         }
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
+
+        val gitProcessManagerFactory = gitProcessManagerFactoryInj
+            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
+        val gitProcessManager = gitProcessManagerFactory.create()
+
         val repos = reposInj ?: runCatching {
             Repo.loadFromFile(conf.reposFilePath)
         }.getOrElse { t -> throw LoadingReposFailedException(t) }
-
         val reposFiltered = when (val markerConditions = conf.markerConditions) {
             null -> repos
             else -> repos.filter { markerConditions.satisfies(it.markers) }
         }
 
-        val gitProcessManagerFactory = gitProcessManagerFactoryInj
-            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
-        val gitProcessManager = gitProcessManagerFactory.create()
         gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
     }
 
