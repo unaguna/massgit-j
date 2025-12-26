@@ -1,7 +1,6 @@
 package jp.unaguna.massgit.configfile
 
 import java.net.URL
-import java.net.URLClassLoader
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -14,15 +13,14 @@ class Prop(
     private val system: Properties = Properties(default)
     private val wrapper: Properties = Properties(system)
 
-    private val loaderUrls: Array<URL> = listOfNotNull(
-        SystemProp.getSystemDir()?.toUri()?.toURL(),
-    )
-        .toTypedArray()
-    private val loader = URLClassLoader(loaderUrls, this.javaClass.classLoader)
+    private val loader = this.javaClass.classLoader
 
     init {
         load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
-        load(system, systemUrl ?: loader.getResource("massgit-system.properties"))
+        load(
+            system,
+            systemUrl ?: SystemProp.systemDir?.resolve("massgit-system.properties")?.toUri()?.toURL(),
+        )
         load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
     }
 
@@ -70,7 +68,10 @@ class Prop(
         fun main(args: Array<String>) {
             val prop = Prop()
 
-            prop.wrapper.list(System.out)
+            // Don't use `prop.wrapper.list(System.out)`;  long values are truncated.
+            prop.propertyNames().iterator().forEach {
+                println("$it=${prop.wrapper.getProperty(it as String)}")
+            }
         }
     }
 }

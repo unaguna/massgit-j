@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.serialization") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.graalvm.buildtools.native") version "0.11.1"
     id("io.gitlab.arturbosch.detekt") version("1.23.8")
 }
 
@@ -32,7 +33,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(17)
 }
 
 tasks {
@@ -42,6 +43,16 @@ tasks {
             archiveBaseName = archiveBaseName.get().removeSuffix("-j")
             archiveClassifier = ""
         }
+    }
+}
+
+graalvmNative {
+    binaries.named("main") {
+        imageName.set("massgit")
+        mainClass.set("jp.unaguna.massgit.Main")
+        buildArgs.add("--initialize-at-build-time")
+        buildArgs.add("-O3")
+        resources.includedPatterns.add("massgit-.+\\.properties")
     }
 }
 
