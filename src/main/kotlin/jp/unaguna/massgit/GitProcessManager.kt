@@ -8,6 +8,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.GitProcessCanceledException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.exception.RepoNotContainUrlException
+import jp.unaguna.massgit.exitcode.GrepExitCodeDecider
 import jp.unaguna.massgit.exitcode.RegularExitCodeDecider
 import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
@@ -128,7 +129,7 @@ open class GitProcessRegularManager protected constructor(
     }
 
     open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
-    override val exitCodeDecider = RegularExitCodeDecider()
+    override val exitCodeDecider: ExitCodeDecider = RegularExitCodeDecider()
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
@@ -140,7 +141,8 @@ open class GitProcessRegularManager protected constructor(
         fun construct(mainArgs: MainArgs): GitProcessRegularManager {
             return when (mainArgs.subCommand) {
                 "diff" -> GitProcessDiffManager(mainArgs)
-                "grep", "ls-files" -> GitProcessFilepathManager(mainArgs)
+                "grep" -> GitProcessGrepManager(mainArgs)
+                "ls-files" -> GitProcessFilepathManager(mainArgs)
                 else -> GitProcessRegularManager(mainArgs)
             }
         }
@@ -176,6 +178,13 @@ class GitProcessFilepathManager(
     mainArgs: MainArgs,
 ) : GitProcessRegularManager(mainArgs) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+}
+
+class GitProcessGrepManager(
+    mainArgs: MainArgs,
+) : GitProcessRegularManager(mainArgs) {
+    override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+    override val exitCodeDecider: ExitCodeDecider = GrepExitCodeDecider()
 }
 
 class CloneProcessManager(
