@@ -1,4 +1,4 @@
-package jp.unaguna.massgit.testcommon.stdio
+package jp.unaguna.massgit.testcommon.io
 
 import java.io.PrintWriter
 import java.nio.file.Path
