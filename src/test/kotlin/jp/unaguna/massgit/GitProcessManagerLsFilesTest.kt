@@ -1,11 +1,15 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
+import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
+import jp.unaguna.massgit.testcommon.stdio.trapStdout
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.nio.file.Path
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GitProcessManagerLsFilesTest {
@@ -44,6 +48,43 @@ class GitProcessManagerLsFilesTest {
 
         val actualExitCode = processManager.run(repos, massgitBaseDir = tempDir)
         assertEquals(expectedExitCode, actualExitCode)
+        assertEquals(repos.size, processExecutor.executeCount)
+    }
+
+    @Test
+    fun test_stdout(
+        @TempDir tempDir: Path,
+    ) {
+        val mainArgs = MainArgs.of(listOf("ls-files"))
+        val exitCodes = listOf(0, 0, 0)
+        val repos = List(exitCodes.size) { index ->
+            Repo(dirname = "repo$index")
+        }
+        val eachProcessStdout = List(exitCodes.size) { index ->
+            createTempTextFile(tempDir, "stdout$index") {
+                println("gradle.properties")
+                println("src/main/resources/file$index")
+            }
+        }
+        val expectedStdout = buildStringByPrintStream {
+            println("repo0/gradle.properties")
+            println("repo0/src/main/resources/file0")
+            println("repo1/gradle.properties")
+            println("repo1/src/main/resources/file1")
+            println("repo2/gradle.properties")
+            println("repo2/src/main/resources/file2")
+        }
+
+        val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
+        val processManager = GitProcessManager.regular(
+            mainArgs,
+            processExecutor,
+        )
+
+        val actualStdout = trapStdout {
+            processManager.run(repos, massgitBaseDir = tempDir)
+        }
+        assertEquals(expectedStdout, actualStdout)
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }
