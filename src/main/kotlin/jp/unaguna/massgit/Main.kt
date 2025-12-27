@@ -3,9 +3,14 @@ package jp.unaguna.massgit
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.logging.LoggingSetUp
+import java.util.logging.Level
+import java.util.logging.Logger
 import kotlin.system.exitProcess
 
 class Main {
+    private val logger = Logger.getLogger(Main::class.java.name)
+
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
@@ -43,8 +48,12 @@ class Main {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
+            LoggingSetUp.setUpLogging()
+
+            val mainInstance = Main()
+
             val exitCode = runCatching {
-                Main().run(mainArgs = MainArgs.of(args))
+                mainInstance.run(mainArgs = MainArgs.of(args))
             }.onFailure { e ->
                 val message = if (e is MassgitException) {
                     e.consoleMessage
@@ -55,7 +64,7 @@ class Main {
                 }
 
                 System.err.println(message)
-                // TODO: 例外をログ出力
+                mainInstance.logger.log(Level.WARNING, "some error occurred", e)
             }.getOrDefault(127)
 
             exitProcess(exitCode)

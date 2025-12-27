@@ -1,0 +1,14 @@
+[
+  {
+    "name" : "java.util.logging.FileHandler",
+    "methods" : [
+      { "name" : "<init>", "parameterTypes" : [] }
+    ]
+  },
+  {
+    "name" : "jp.unaguna.massgit.logging.LogFormatter",
+    "methods" : [
+      { "name" : "<init>", "parameterTypes" : [] }
+    ]
+  }
+]
