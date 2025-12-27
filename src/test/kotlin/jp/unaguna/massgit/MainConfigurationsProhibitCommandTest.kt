@@ -1,7 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Prop
-import jp.unaguna.massgit.testcommon.stdio.createTempTextFile
+import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
