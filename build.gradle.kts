@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.graalvm.buildtools.native") version "0.11.1"
-    id("io.gitlab.arturbosch.detekt") version("1.23.8")
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 group = "jp.unaguna"
