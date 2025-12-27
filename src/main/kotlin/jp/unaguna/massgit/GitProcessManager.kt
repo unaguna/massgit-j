@@ -8,6 +8,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.GitProcessCanceledException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.exception.RepoNotContainUrlException
+import jp.unaguna.massgit.exitcode.RegularExitCodeDecider
 import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 interface GitProcessManager {
-    fun run(repos: List<Repo>, massgitBaseDir: Path? = null)
+    fun run(repos: List<Repo>, massgitBaseDir: Path? = null): Int
 
     companion object {
         fun regular(mainArgs: MainArgs): GitProcessManager {
@@ -33,6 +34,7 @@ interface GitProcessManager {
 abstract class GitProcessManagerBase : GitProcessManager {
     protected abstract val cmdTemplate: ProcessArgs
     protected open val summaryPrinter: SummaryPrinter? = null
+    protected abstract val exitCodeDecider: ExitCodeDecider
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
     private fun createPrintErrorManager(errorFilter: PrintFilter): PrintManager {
@@ -46,7 +48,7 @@ abstract class GitProcessManagerBase : GitProcessManager {
         return LineHeadFilter("${repo.dirname}: ")
     }
 
-    override fun run(repos: List<Repo>, massgitBaseDir: Path?) {
+    override fun run(repos: List<Repo>, massgitBaseDir: Path?): Int {
         require(repos.isNotEmpty())
 
         // TODO: 同時に実行するスレッド数を指定できるようにする
@@ -96,6 +98,7 @@ abstract class GitProcessManagerBase : GitProcessManager {
         }
 
         summaryPrinter?.printSummary(executionFutures)
+        return exitCodeDecider.decideExitCode(executionFutures)
     }
 
     private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {
@@ -125,6 +128,7 @@ open class GitProcessRegularManager protected constructor(
     }
 
     open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
+    override val exitCodeDecider = RegularExitCodeDecider()
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
@@ -188,6 +192,7 @@ class CloneProcessManager(
     }
 
     override val summaryPrinter = RegularSummaryPrinter()
+    override val exitCodeDecider = RegularExitCodeDecider()
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(

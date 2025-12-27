@@ -11,10 +11,10 @@ class Main {
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
         gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
-    ) {
+    ): Int {
         if (mainArgs.mainOptions.isVersion()) {
             showVersion()
-            return
+            return 0
         }
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
@@ -31,7 +31,7 @@ class Main {
             else -> repos.filter { markerConditions.satisfies(it.markers) }
         }
 
-        gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
+        return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
     }
 
     private fun showVersion() {
@@ -43,7 +43,7 @@ class Main {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
-            runCatching {
+            val exitCode = runCatching {
                 Main().run(mainArgs = MainArgs.of(args))
             }.onFailure { e ->
                 val message = if (e is MassgitException) {
@@ -56,11 +56,9 @@ class Main {
 
                 System.err.println(message)
                 // TODO: 例外をログ出力
+            }.getOrDefault(127)
 
-                exitProcess(127)
-            }
-            // TODO: 実行結果によって終了コードを変える
-            exitProcess(0)
+            exitProcess(exitCode)
         }
     }
 }
