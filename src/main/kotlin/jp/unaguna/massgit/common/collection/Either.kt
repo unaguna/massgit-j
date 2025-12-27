@@ -33,3 +33,16 @@ fun <T> Result<T>.getEither(): Either<T, Throwable> {
         { Either.right(it) },
     )
 }
+
+fun <A, B> List<Either<A, B>>.groupByType(): Pair<List<A>, List<B>> {
+    val resultA = mutableListOf<A>()
+    val resultB = mutableListOf<B>()
+    this.forEach {
+        if (it.isLeft) {
+            resultA.add(it.getLeft())
+        } else {
+            resultB.add(it.getRight())
+        }
+    }
+    return Pair(resultA, resultB)
+}

@@ -48,8 +48,9 @@ class MainReposFilterTest {
             override fun run(
                 repos: List<Repo>,
                 massgitBaseDir: Path?
-            ) {
+            ): Int {
                 reposHistory.add(repos)
+                return 0
             }
         }
     }

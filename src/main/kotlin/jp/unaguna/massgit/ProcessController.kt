@@ -8,13 +8,15 @@ class ProcessController(
     private val printErrorManager: PrintManager,
 ) {
     fun readOutput() {
-        thread {
+        val stdoutReadThread = thread {
             printManager.readAllLinesAndInstantOutput(process.inputStream)
         }
-        thread {
+        val stderrReadThread = thread {
             printErrorManager.readAllLinesAndInstantOutput(process.errorStream)
         }
         process.waitFor()
+        stdoutReadThread.join()
+        stderrReadThread.join()
 
         // TODO: ロックする
         printManager.postOutput(process.inputStream)
