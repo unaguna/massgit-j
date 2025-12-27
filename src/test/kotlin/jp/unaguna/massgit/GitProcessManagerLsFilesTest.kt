@@ -10,20 +10,22 @@ import kotlin.test.assertEquals
 
 class GitProcessManagerLsFilesTest {
     @ParameterizedTest
-    @CsvSource(value = [
-        "0:0:0,0",
-        // error if one or more processes return error
-        "1:0:0,1",
-        "0:0:1,1",
-        "0:1:1,1",
-        "1:1:1,1",
-        "2:1:1,2",
-        "1:2:1,2",
-        "1:1:2,2",
-        "2:0:0,2",
-        "0:2:0,2",
-        "0:0:2,2",
-    ])
+    @CsvSource(
+        value = [
+            "0:0:0,0",
+            // error if one or more processes return error
+            "1:0:0,1",
+            "0:0:1,1",
+            "0:1:1,1",
+            "1:1:1,1",
+            "2:1:1,2",
+            "1:2:1,2",
+            "1:1:2,2",
+            "2:0:0,2",
+            "0:2:0,2",
+            "0:0:2,2",
+        ]
+    )
     fun test_exit_codes(
         exitCodesStr: String,
         expectedExitCode: Int,

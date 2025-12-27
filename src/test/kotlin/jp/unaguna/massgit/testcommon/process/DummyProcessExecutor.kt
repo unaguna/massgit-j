@@ -7,7 +7,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
 
-
 class DummyProcessExecutor(
     exitCodes: List<Int>,
 ) : ProcessExecutor {
@@ -51,6 +50,5 @@ class DummyProcessExecutor(
         override fun destroy() {
             // do nothing
         }
-
     }
 }

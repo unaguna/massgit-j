@@ -10,22 +10,24 @@ import kotlin.test.assertEquals
 
 class GitProcessManagerGrepTest {
     @ParameterizedTest
-    @CsvSource(value = [
-        "0:0:0,0",
-        "1:0:0,0",
-        "0:0:1,0",
-        "0:1:1,0",
-        // not found (1) if all processes return not found (1)
-        "1:1:1,1",
-        // error if one or more processes return error
-        "2:1:1,2",
-        "1:2:1,2",
-        "1:1:2,2",
-        "2:0:0,2",
-        "0:2:0,2",
-        "0:0:2,2",
-        "0:2:5,5",
-    ])
+    @CsvSource(
+        value = [
+            "0:0:0,0",
+            "1:0:0,0",
+            "0:0:1,0",
+            "0:1:1,0",
+            // not found (1) if all processes return not found (1)
+            "1:1:1,1",
+            // error if one or more processes return error
+            "2:1:1,2",
+            "1:2:1,2",
+            "1:1:2,2",
+            "2:0:0,2",
+            "0:2:0,2",
+            "0:0:2,2",
+            "0:2:5,5",
+        ]
+    )
     fun test_exit_codes(
         exitCodesStr: String,
         expectedExitCode: Int,
