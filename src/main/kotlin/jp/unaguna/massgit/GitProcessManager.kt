@@ -98,8 +98,9 @@ abstract class GitProcessManagerBase : GitProcessManager {
             executor.awaitTermination(1, TimeUnit.MINUTES)
         }
 
-        summaryPrinter?.printSummary(executionFutures)
-        return exitCodeDecider.decideExitCode(executionFutures)
+        val executionResults = executionFutures.map { future -> future.get() }
+        summaryPrinter?.printSummary(executionResults)
+        return exitCodeDecider.decideExitCode(executionResults)
     }
 
     private fun createPrintManagers(repo: Repo, errorFilter: PrintFilter): ClosablePair<PrintManager, PrintManager> {

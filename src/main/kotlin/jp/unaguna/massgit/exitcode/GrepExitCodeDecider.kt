@@ -3,13 +3,10 @@ package jp.unaguna.massgit.exitcode
 import jp.unaguna.massgit.ExitCodeDecider
 import jp.unaguna.massgit.common.collection.Either
 import jp.unaguna.massgit.common.collection.groupByType
-import java.util.concurrent.Future
 
 class GrepExitCodeDecider : ExitCodeDecider {
     @Suppress("MagicNumber")
-    override fun decideExitCode(futures: List<Future<Either<Process, Throwable>>>): Int {
-        val results = futures.map { future -> future.get() }
-
+    override fun decideExitCode(results: List<Either<Process, Throwable>>): Int {
         val (processes, throwable) = results.groupByType()
         val exitCodes = processes.map { p -> p.exitValue() }.toSet()
 
