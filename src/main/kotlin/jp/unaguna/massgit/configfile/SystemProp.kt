@@ -23,6 +23,10 @@ object SystemProp {
             }.getOrNull()
     }
 
+    val logbackConfig: Path? by lazy {
+        System.getProperty("logback.configurationFile")?.let { Path(it) }
+    }
+
     object Origin {
         val systemDir: Path? get() = System.getProperty("massgit.system-dir")?.let { Path(it) }
     }

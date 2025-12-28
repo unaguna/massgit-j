@@ -4,12 +4,15 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.logging.LoggingSetUp
-import java.util.logging.Level
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
 class Main {
-    private val logger = Logger.getLogger(Main::class.java.name)
+    private val logger = LoggerFactory.getLogger(Main::class.java)
+
+    init {
+        logger.info("Start massgit.")
+    }
 
     fun run(
         mainArgs: MainArgs,
@@ -64,7 +67,7 @@ class Main {
                 }
 
                 System.err.println(message)
-                mainInstance.logger.log(Level.WARNING, "some error occurred", e)
+                mainInstance.logger.warn("some error occurred", e)
             }.getOrDefault(127)
 
             exitProcess(exitCode)

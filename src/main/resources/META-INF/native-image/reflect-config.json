@@ -1,14 +1,57 @@
 [
   {
-    "name" : "java.util.logging.FileHandler",
-    "methods" : [
-      { "name" : "<init>", "parameterTypes" : [] }
-    ]
+    "name" : "ch.qos.logback.core.status.NopStatusListener",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
   },
   {
-    "name" : "jp.unaguna.massgit.logging.LogFormatter",
-    "methods" : [
-      { "name" : "<init>", "parameterTypes" : [] }
-    ]
+    "name" : "ch.qos.logback.core.ConsoleAppender",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name" : "ch.qos.logback.core.rolling.RollingFileAppender",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name" : "ch.qos.logback.core.rolling.TimeBasedRollingPolicy",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name" : "ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
   }
 ]
