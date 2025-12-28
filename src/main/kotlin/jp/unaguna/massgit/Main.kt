@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.configfile.SystemProp
 import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.logging.LoggingSetUp
@@ -51,6 +52,7 @@ class Main {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
+            SystemProp.initialize()
             LoggingSetUp.setUpLogging()
 
             val mainInstance = Main()
