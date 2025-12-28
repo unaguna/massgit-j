@@ -39,6 +39,7 @@ class Main {
             null -> repos
             else -> repos.filter { markerConditions.satisfies(it.markers) }
         }
+        logger.debug("Repos filtered: {}", reposFiltered)
 
         return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
     }
