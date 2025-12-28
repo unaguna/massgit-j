@@ -14,6 +14,7 @@ import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -38,6 +39,7 @@ interface GitProcessManager {
 abstract class GitProcessManagerBase(
     private val processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManager {
+    private val logger = LoggerFactory.getLogger(GitProcessManagerBase::class.java)
     protected abstract val cmdTemplate: ProcessArgs
     protected open val summaryPrinter: SummaryPrinter? = null
     protected abstract val exitCodeDecider: ExitCodeDecider
@@ -92,7 +94,7 @@ abstract class GitProcessManagerBase(
                 val message = errorFilter.mapLine(baseMsg)
 
                 System.err.println(message)
-                // TODO: 例外をログ出力
+                logger.error(message, e)
             }.getEither()
         }
 

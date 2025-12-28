@@ -1,7 +1,9 @@
 package jp.unaguna.massgit.configfile
 
+import org.slf4j.LoggerFactory
 import java.net.URL
 import java.util.*
+import kotlin.io.path.exists
 import kotlin.reflect.KClass
 
 class Prop(
@@ -9,6 +11,7 @@ class Prop(
     systemUrl: URL? = null,
     localUrl: URL? = null,
 ) {
+    private val logger = LoggerFactory.getLogger(Prop::class.java)
     private val default: Properties = Properties()
     private val system: Properties = Properties(default)
     private val wrapper: Properties = Properties(system)
@@ -19,7 +22,8 @@ class Prop(
         load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
         load(
             system,
-            systemUrl ?: SystemProp.systemDir?.resolve("massgit-system.properties")?.toUri()?.toURL(),
+            systemUrl ?: SystemProp.systemDir?.resolve("massgit-system.properties")
+                ?.takeIf { it.exists() }?.toUri()?.toURL(),
         )
         load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
     }
@@ -29,8 +33,8 @@ class Prop(
             url?.openStream()?.use { inputStream ->
                 prop.load(inputStream)
             }
-        }.onFailure {
-            // TODO: ログ出力して続行
+        }.onFailure { e ->
+            logger.warn("Could not load properties file '$url'", e)
         }.getOrNull()
     }
 

@@ -28,6 +28,8 @@ object SystemProp {
                 }
             }.onFailure {
                 // TODO: ログ出力
+                // At the point this code executes, the logging configuration is not yet complete,
+                // so getLogger() is unavailable.
             }.getOrNull()
 
             if (systemDir != null) {

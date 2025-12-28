@@ -12,6 +12,10 @@ class MassgitOptions(
     fun getMarker() = options.getOneOrNull(MassgitOptionsDef.MARKER)?.getOneArg()
     fun getRepSuffix() = options.getOneOrNull(MassgitOptionsDef.REP_SUFFIX)?.getOneArg()
 
+    override fun toString(): String {
+        return options.toString()
+    }
+
     companion object {
         fun build(args: List<String>): Pair<MassgitOptions, List<String>> {
             val (mainOptionsInner, remainingArgs) = Options.build(args, MassgitOptionDefProvider)

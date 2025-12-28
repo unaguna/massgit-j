@@ -28,7 +28,7 @@
         </encoder>
     </appender>
 
-    <logger name="jp.unaguna.massgit" level="INFO" additivity="false">
+    <logger name="jp.unaguna.massgit" level="ALL" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </logger>

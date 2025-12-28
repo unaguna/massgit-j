@@ -69,7 +69,7 @@ class Main {
                 }
 
                 System.err.println(message)
-                mainInstance.logger.warn("some error occurred", e)
+                mainInstance.logger.warn(message, e)
             }.getOrDefault(127)
 
             exitProcess(exitCode)
