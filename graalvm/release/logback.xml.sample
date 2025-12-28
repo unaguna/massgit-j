@@ -30,7 +30,7 @@
         </encoder>
     </appender>
 
-    <logger name="jp.unaguna.massgit" level="WARN" additivity="false">
+    <logger name="jp.unaguna.massgit" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </logger>

@@ -1,1 +1,3 @@
 *.exe
+logback.xml
+logs/
