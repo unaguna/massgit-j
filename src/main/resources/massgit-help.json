@@ -1,0 +1,26 @@
+{
+  "usages": [
+    "%s [<options>] <subcommand> [<args>]",
+    "%s (--version | --help)"
+  ],
+  "options": [
+    {
+      "names": ["--marker", "-m"],
+      "type": "String",
+      "dest": "marker_condition",
+      "description": "Specify target repositories by marker. You can specify boolean expression such as 'marker1 or marker2'."
+    },
+    {
+      "names": ["--rep-suffix"],
+      "type": "String",
+      "dest": "rep_suffix",
+      "description": "The suffix of repository name in output. Default is ': ' in almost every subcommand."
+    },
+    {
+      "names": ["--version"],
+      "type": null,
+      "dest": null,
+      "description": "Show version number of massgit"
+    }
+  ]
+}
