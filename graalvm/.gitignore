@@ -1,3 +1,4 @@
 *.exe
 logback.xml
+massgit-system.properties
 logs/
