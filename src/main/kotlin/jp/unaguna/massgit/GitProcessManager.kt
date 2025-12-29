@@ -14,6 +14,7 @@ import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
 import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -38,6 +39,7 @@ interface GitProcessManager {
 abstract class GitProcessManagerBase(
     private val processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManager {
+    private val logger = LoggerFactory.getLogger(GitProcessManagerBase::class.java)
     protected abstract val cmdTemplate: ProcessArgs
     protected open val summaryPrinter: SummaryPrinter? = null
     protected abstract val exitCodeDecider: ExitCodeDecider
@@ -61,8 +63,10 @@ abstract class GitProcessManagerBase(
         val executor = Executors.newFixedThreadPool(1)
 
         val executionFutures = repos.submitForEach(executor) { repo ->
+            logger.trace("Start thread for {}", repo.dirname)
+
             val errorFilter = errorFilter(repo)
-            runCatching {
+            val threadResult = runCatching {
                 val process = runCatching {
                     processExecutor.execute(
                         cmdTemplate.render(repo),
@@ -92,8 +96,11 @@ abstract class GitProcessManagerBase(
                 val message = errorFilter.mapLine(baseMsg)
 
                 System.err.println(message)
-                // TODO: 例外をログ出力
+                logger.error(message, e)
             }.getEither()
+
+            logger.trace("End thread for {}; result={}", repo.dirname, threadResult)
+            threadResult
         }
 
         executor.shutdown()

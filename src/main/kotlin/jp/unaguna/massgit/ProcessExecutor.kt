@@ -1,5 +1,6 @@
 package jp.unaguna.massgit
 
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 interface ProcessExecutor {
@@ -20,6 +21,11 @@ private class DefaultProcessExecutor : ProcessExecutor {
             processBuilder.directory(workingDir.toFile())
         }
 
+        logger.debug("Executing command: ${command.joinToString(" ")}")
         return processBuilder.start()
+    }
+
+    companion object {
+        private val logger by lazy { LoggerFactory.getLogger(DefaultProcessExecutor::class.java) }
     }
 }

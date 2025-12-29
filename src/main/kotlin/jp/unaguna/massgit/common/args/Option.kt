@@ -24,4 +24,11 @@ class OptionImpl<D : OptionDef>(override val def: D) : Option<D> {
     fun argsNumberIsSufficient(): Boolean {
         return def.sufficient(args.size)
     }
+
+    override fun toString(): String {
+        return when (args.size) {
+            0 -> "Option(${def.representativeName})"
+            else -> "Option(${def.representativeName}, ${args.joinToString(" ")})"
+        }
+    }
 }

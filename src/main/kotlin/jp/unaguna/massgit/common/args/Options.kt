@@ -100,6 +100,10 @@ class OptionsImpl<D : OptionDef> private constructor(
     override fun of(key: D): List<Option<D>> {
         return this[key] ?: emptyList()
     }
+
+    override fun toString(): String {
+        return optionMap.toString()
+    }
 }
 
 interface OptionDefProvider<D : OptionDef> {

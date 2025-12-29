@@ -8,8 +8,16 @@ import kotlin.io.path.toPath
 
 object SystemProp {
     val systemDir: Path? by lazy {
-        Origin.systemDir
-            ?: runCatching {
+        System.getProperty("massgit.system-dir")?.let { Path(it) }
+    }
+
+    val logbackConfig: Path? by lazy {
+        System.getProperty("logback.configurationFile")?.let { Path(it) }
+    }
+
+    fun initialize() {
+        if (System.getProperty("massgit.system-dir") == null) {
+            val systemDir = runCatching {
                 // If launched by executing an EXE file, obtain the path to that file;
                 // if launched via the java command, obtain the path to the JAR file.
                 val codeSource = Main::class.java.protectionDomain.codeSource?.location?.toURI()?.toPath()
@@ -20,10 +28,13 @@ object SystemProp {
                 }
             }.onFailure {
                 // TODO: ログ出力
+                // At the point this code executes, the logging configuration is not yet complete,
+                // so getLogger() is unavailable.
             }.getOrNull()
-    }
 
-    object Origin {
-        val systemDir: Path? get() = System.getProperty("massgit.system-dir")?.let { Path(it) }
+            if (systemDir != null) {
+                System.setProperty("massgit.system-dir", systemDir.toString())
+            }
+        }
     }
 }
