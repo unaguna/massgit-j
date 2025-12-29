@@ -63,8 +63,10 @@ abstract class GitProcessManagerBase(
         val executor = Executors.newFixedThreadPool(1)
 
         val executionFutures = repos.submitForEach(executor) { repo ->
+            logger.trace("Start thread for {}", repo.dirname)
+
             val errorFilter = errorFilter(repo)
-            runCatching {
+            val threadResult = runCatching {
                 val process = runCatching {
                     processExecutor.execute(
                         cmdTemplate.render(repo),
@@ -96,6 +98,9 @@ abstract class GitProcessManagerBase(
                 System.err.println(message)
                 logger.error(message, e)
             }.getEither()
+
+            logger.trace("End thread for {}; result={}", repo.dirname, threadResult)
+            threadResult
         }
 
         executor.shutdown()
