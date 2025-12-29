@@ -26,30 +26,30 @@ data class HelpDefinition(
         val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
 
         out.println("Usage:")
-        out.addIndent(indentSize)
-        usages.forEach { usage ->
-            out.println(usage.format(cmd))
+        out.withIndent(indentSize) {
+            usages.forEach { usage ->
+                out.println(usage.format(cmd))
+            }
         }
-        out.addIndent(-indentSize)
         out.println()
 
         out.println("Options:")
-        out.addIndent(indentSize)
-        options.forEach { option ->
-            val optionStr = option.toString()
-            out.print(optionStr)
-            if (optionStr.length > optionWidth) {
-                out.println()
-                out.print(" ".repeat(optionWidth + 2))
-            } else {
-                out.print(" ".repeat(optionWidth - optionStr.length + 2))
-            }
+        out.withIndent(indentSize) {
+            options.forEach { option ->
+                val optionStr = option.toString()
+                out.print(optionStr)
+                if (optionStr.length > optionWidth) {
+                    out.println()
+                    out.print(" ".repeat(optionWidth + 2))
+                } else {
+                    out.print(" ".repeat(optionWidth - optionStr.length + 2))
+                }
 
-            out.addIndent(optionWidth + 2)
-            out.println(option.description)
-            out.addIndent(-optionWidth - 2)
+                out.withIndent(optionWidth + 2) {
+                    out.println(option.description)
+                }
+            }
         }
-        out.addIndent(-indentSize)
     }
 
     companion object {

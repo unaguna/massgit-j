@@ -10,6 +10,12 @@ class IndentPrintStreamWrapper(private val printStream: PrintStream, private val
         this.indent += value
     }
 
+    fun withIndent(additionalValue: Int, action: () -> Unit) {
+        addIndent(additionalValue)
+        action()
+        addIndent(-additionalValue)
+    }
+
     fun println() {
         newline()
     }
