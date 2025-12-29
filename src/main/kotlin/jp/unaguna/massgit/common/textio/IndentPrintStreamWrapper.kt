@@ -7,6 +7,7 @@ class IndentPrintStreamWrapper(private val printStream: PrintStream, private val
     private var offsetInLine = 0
 
     fun addIndent(value: Int) {
+        require(0 <= indent + value) { "indent must be non-negative" }
         this.indent += value
     }
 
