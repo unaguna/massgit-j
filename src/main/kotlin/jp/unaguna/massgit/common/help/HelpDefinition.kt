@@ -8,12 +8,15 @@ import java.net.URL
 
 @Serializable
 data class HelpDefinition(
+    val name: String,
+    val subdesc: String? = null,
     val usages: List<String>,
     val options: List<Option>,
+    val subcommands: List<HelpDefinition>? = null,
 ) {
     fun print(
         out: PrintStream,
-        cmd: String,
+        cmd: String = name,
         windowWidth: Int = 120,
         @Suppress("MagicNumber")
         optionWidth: Int = (windowWidth / 5),
@@ -50,6 +53,24 @@ data class HelpDefinition(
                 }
             }
         }
+        out.println()
+
+        out.println("Subcommands:")
+        out.withIndent(indentSize) {
+            subcommands?.forEach { subcommand ->
+                out.print(subcommand.name)
+                if (subcommand.name.length > optionWidth) {
+                    out.println()
+                    out.print(" ".repeat(optionWidth + 2))
+                } else {
+                    out.print(" ".repeat(optionWidth - subcommand.name.length + 2))
+                }
+
+                out.withIndent(optionWidth + 2) {
+                    subcommand.subdesc?.let { out.println(it) }
+                }
+            }
+        }
     }
 
     companion object {
@@ -60,6 +81,8 @@ data class HelpDefinition(
         @JvmStatic
         fun main(args: Array<String>) {
             val helpDef = load(HelpDefinition::class.java.getResource("/" + args[0])!!)
+            println(helpDef)
+            println()
             helpDef.print(System.out, "command", windowWidth = 80)
         }
     }

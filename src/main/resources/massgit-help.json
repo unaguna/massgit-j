@@ -1,4 +1,5 @@
 {
+  "name": "massgit",
   "usages": [
     "%s [<options>] <subcommand> [<args>]",
     "%s (--version | --help)"
@@ -21,6 +22,28 @@
       "type": null,
       "dest": null,
       "description": "Show version number of massgit"
+    }
+  ],
+  "subcommands": [
+    {
+      "name": "mg-clone",
+      "subdesc": "Clone repositories written in repos.json.",
+      "usages": [
+        "%s [<options>] %s",
+        "%s %s (--version | --help)"
+      ],
+      "options": [
+      ]
+    },
+    {
+      "name": "<git-subcommand>",
+      "subdesc": "Execute the subcommand for repositories.",
+      "usages": [
+        "%s [<options>] %s [<args>]",
+        "%s %s (--version | --help)"
+      ],
+      "options": [
+      ]
     }
   ]
 }
