@@ -31,7 +31,7 @@
     </appender>
 
     <logger name="jp.unaguna.massgit" level="WARN" additivity="false">
-        <appender-ref ref="CONSOLE"/>
+        <!-- <appender-ref ref="CONSOLE"/> -->
         <appender-ref ref="FILE"/>
     </logger>
 
