@@ -2,8 +2,10 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.AllSet
 import jp.unaguna.massgit.common.syntaxtree.BooleanTree
+import jp.unaguna.massgit.common.syntaxtree.DecodeTreeFailedException
 import jp.unaguna.massgit.common.syntaxtree.ValueProvider
 import jp.unaguna.massgit.configfile.Prop
+import jp.unaguna.massgit.exception.MassgitException
 import java.nio.file.Path
 import kotlin.io.path.Path
 
@@ -54,10 +56,23 @@ class MainConfigurations(
 }
 
 class MarkerConditions(private val expression: BooleanTree) {
-    constructor(expression: String) : this(BooleanTree.decode(expression))
+    constructor(expression: String) : this(decode(expression))
 
     fun satisfies(markers: List<String>): Boolean {
         val vars = ValueProvider.fromTrueSet(markers)
         return expression.evaluate(vars)
     }
+
+    companion object {
+        private fun decode(expression: String): BooleanTree {
+            return try {
+                BooleanTree.decode(expression)
+            } catch (e: DecodeTreeFailedException) {
+                throw IllegalMarkerConditionException(expression, e)
+            }
+        }
+    }
 }
+
+private class IllegalMarkerConditionException(expression: String, cause: Throwable) :
+    MassgitException("illegal marker condition expression: $expression", cause)
