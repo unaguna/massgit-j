@@ -1,10 +1,10 @@
 package jp.unaguna.massgit
 
-import jp.unaguna.massgit.common.help.HelpDefinition
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.SystemProp
 import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.help.HelpDefinition
 import jp.unaguna.massgit.logging.LoggingSetUp
 import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess

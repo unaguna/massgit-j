@@ -1,4 +1,4 @@
-package jp.unaguna.massgit.common.help
+package jp.unaguna.massgit.help
 
 import jp.unaguna.massgit.common.textio.IndentPrintStreamWrapper
 import kotlinx.serialization.Serializable
