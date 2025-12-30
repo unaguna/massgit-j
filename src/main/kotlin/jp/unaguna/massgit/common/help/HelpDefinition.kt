@@ -9,6 +9,7 @@ import java.net.URL
 @Serializable
 data class HelpDefinition(
     val name: String,
+    val description: String? = null,
     val subdesc: String? = null,
     val usages: List<String>,
     val options: List<Option>,
@@ -27,6 +28,11 @@ data class HelpDefinition(
         require(optionWidth <= windowWidth - 2) { "optionWidth must be less than or equal to windowWidth - 2" }
 
         val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
+
+        if (description != null) {
+            out.println(description)
+            out.println()
+        }
 
         out.println("Usage:")
         out.withIndent(indentSize) {

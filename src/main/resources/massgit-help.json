@@ -1,5 +1,6 @@
 {
   "name": "massgit",
+  "description": "Massgit is a tool that enables you to perform the same operation on multiple Git repositories with a single command execution.",
   "usages": [
     "%s [<options>] <subcommand> [<args>]",
     "%s (--version | --help)"
