@@ -8,7 +8,8 @@ import jp.unaguna.massgit.exception.MassgitException
 class MassgitOptions(
     private val options: Options<MassgitOptionsDef>,
 ) : Map<MassgitOptionsDef, List<Option<MassgitOptionsDef>>> by options {
-    fun isVersion() = contains(MassgitOptionsDef.VERSION)
+    fun isHelp() = contains(MassgitOptionsDef.HELP)
+    fun isVersion() = !isHelp() && contains(MassgitOptionsDef.VERSION)
     fun getMarker() = options.getOneOrNull(MassgitOptionsDef.MARKER)?.getOneArg()
     fun getRepSuffix() = options.getOneOrNull(MassgitOptionsDef.REP_SUFFIX)?.getOneArg()
 

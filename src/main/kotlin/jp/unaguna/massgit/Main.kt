@@ -1,5 +1,6 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.common.help.HelpDefinition
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.SystemProp
 import jp.unaguna.massgit.exception.LoadingReposFailedException
@@ -15,12 +16,24 @@ class Main {
         logger.info("Start massgit.")
     }
 
+    @Suppress("ReturnCount")
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
         gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
     ): Int {
+        if (mainArgs.mainOptions.isHelp()) {
+            val helpUrl = this::class.java.getResource("/massgit-help.json")
+                ?: error("massgit-help.json could not be found")
+            val helpDef = HelpDefinition.load(helpUrl)
+
+            // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
+            // TODO: ウィンドウサイズを取得して、引数として使用する
+            helpDef.print(System.out, "massgit")
+
+            return 0
+        }
         if (mainArgs.mainOptions.isVersion()) {
             showVersion()
             return 0
