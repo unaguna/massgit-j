@@ -88,7 +88,7 @@ class Main {
                     "some error occurred"
                 }
 
-                System.err.println(message)
+                System.err.println("error: $message")
                 mainInstance.logger.warn(message, e)
             }.getOrDefault(127)
 
