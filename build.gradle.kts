@@ -54,6 +54,7 @@ graalvmNative {
         buildArgs.add("--initialize-at-build-time")
         buildArgs.add("-O3")
         resources.includedPatterns.add("massgit-.+\\.properties")
+        resources.includedPatterns.add("massgit-.+\\.json")
         resources.includedPatterns.add("logback.xml")
     }
 }
