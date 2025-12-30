@@ -16,7 +16,7 @@ class Main {
         logger.info("Start massgit.")
     }
 
-    @Suppress("ReturnCount")
+    @Suppress("ReturnCount", "ThrowsCount")
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
@@ -48,9 +48,15 @@ class Main {
         val repos = reposInj ?: runCatching {
             Repo.loadFromFile(conf.reposFilePath)
         }.getOrElse { t -> throw LoadingReposFailedException(t) }
+        if (repos.isEmpty()) {
+            throw NoRepositoriesRegisteredException()
+        }
         val reposFiltered = when (val markerConditions = conf.markerConditions) {
             null -> repos
             else -> repos.filter { markerConditions.satisfies(it.markers) }
+        }
+        if (reposFiltered.isEmpty()) {
+            throw NoRepositoriesTargetedException()
         }
         logger.debug("Repos filtered: {}", reposFiltered)
 
@@ -126,3 +132,9 @@ private class ProhibitedSubcommandException(subcommand: String) :
 
 private class UnknownSubcommandException(subcommand: String) :
     MassgitException("unknown subcommand '$subcommand'")
+
+private class NoRepositoriesRegisteredException :
+    MassgitException("No target repositories have been registered.")
+
+private class NoRepositoriesTargetedException :
+    MassgitException("No repositories were targeted.")
