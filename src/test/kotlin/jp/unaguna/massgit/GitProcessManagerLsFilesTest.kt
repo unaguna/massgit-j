@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.testcommon.assertion.assertNotContains
 import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
 import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
@@ -86,7 +87,7 @@ class GitProcessManagerLsFilesTest {
         }
         assertEquals(expectedStdout, actualStdout)
         // not contain summary in stderr
-        assert(!actualStderr.contains("Total"))
+        assertNotContains(actualStderr, "Total")
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }
