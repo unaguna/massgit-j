@@ -4,17 +4,18 @@ import jp.unaguna.massgit.SummaryPrinter
 import jp.unaguna.massgit.common.collection.Either
 import org.slf4j.LoggerFactory
 
-class RegularSummaryPrinter : SummaryPrinter {
+/**
+ * Summary printer to output only into logging, not into stderr.
+ */
+class EmptySummaryPrinter : SummaryPrinter {
     override fun printSummary(results: List<Either<Process, Throwable>>) {
         val succeeded = results.count { it.isLeftAnd { p -> p.exitValue() == 0 } }
         val failed = results.size - succeeded
 
-        val message = "Success: $succeeded, Failed: $failed, Total: ${results.size}"
-        System.err.println(message)
-        logger.info(message)
+        logger.info("Success: {}, Failed: {}, Total: {}", succeeded, failed, results.size)
     }
 
     companion object {
-        private val logger by lazy { LoggerFactory.getLogger(RegularSummaryPrinter::class.java) }
+        private val logger by lazy { LoggerFactory.getLogger(EmptySummaryPrinter::class.java) }
     }
 }
