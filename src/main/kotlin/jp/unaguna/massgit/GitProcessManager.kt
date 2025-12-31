@@ -141,6 +141,7 @@ open class GitProcessRegularManager protected constructor(
     }
 
     open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
+    override val summaryPrinter: SummaryPrinter? = RegularSummaryPrinter()
     override val exitCodeDecider: ExitCodeDecider = RegularExitCodeDecider()
 
     override fun createPrintManager(repo: Repo): PrintManager {
@@ -172,6 +173,7 @@ class GitProcessDiffManager(
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
     }
+    override val summaryPrinter = null
 
     override fun createPrintManager(repo: Repo): PrintManager = when {
         mainArgs.subOptions.containsAny(
@@ -195,6 +197,7 @@ class GitProcessFilepathManager(
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+    override val summaryPrinter = null
 }
 
 class GitProcessGrepManager(
@@ -202,6 +205,7 @@ class GitProcessGrepManager(
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+    override val summaryPrinter = null
     override val exitCodeDecider: ExitCodeDecider = GrepExitCodeDecider()
 }
 

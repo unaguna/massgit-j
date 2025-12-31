@@ -1,41 +1,46 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
-import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
-import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
+import jp.unaguna.massgit.testcommon.stdio.trapStderr
 import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderr
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.nio.file.Path
+import kotlin.io.path.createFile
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.text.Regex
 
-class GitProcessManagerLsFilesTest {
+class GitProcessManagerFetchTest {
     @ParameterizedTest
     @CsvSource(
         value = [
-            "0:0:0,0",
+            "0:0:0,0,3,0",
             // error if one or more processes return error
-            "1:0:0,1",
-            "0:0:1,1",
-            "0:1:1,1",
-            "1:1:1,1",
-            "2:1:1,2",
-            "1:2:1,2",
-            "1:1:2,2",
-            "2:0:0,2",
-            "0:2:0,2",
-            "0:0:2,2",
+            "1:0:0,1,2,1",
+            "0:0:1,1,2,1",
+            "0:1:1,1,1,2",
+            "1:1:1,1,0,3",
+            "2:1:1,2,0,3",
+            "1:2:1,2,0,3",
+            "1:1:2,2,0,3",
+            "2:0:0,2,2,1",
+            "0:2:0,2,2,1",
+            "0:0:2,2,2,1",
         ]
     )
     fun test_exit_codes(
         exitCodesStr: String,
         expectedExitCode: Int,
+        expectedSuccessCnt: Int,
+        expectedFailedCnt: Int,
         @TempDir tempDir: Path,
     ) {
-        val mainArgs = MainArgs.of(listOf("ls-files"))
+        val expectedTotalCnt = expectedSuccessCnt + expectedFailedCnt
+        val mainArgs = MainArgs.of(listOf("fetch"))
         val exitCodes = exitCodesStr.split(":").map { it.toInt() }
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -46,34 +51,30 @@ class GitProcessManagerLsFilesTest {
             processExecutor,
         )
 
-        val actualExitCode = processManager.run(repos, massgitBaseDir = tempDir)
-        assertEquals(expectedExitCode, actualExitCode)
+        var actualExitCode: Int? = null
+        val actualStderr = trapStderr {
+            actualExitCode = processManager.run(repos, massgitBaseDir = tempDir)
+        }
+        assertEquals(expectedExitCode, actualExitCode!!)
+        assertContains(
+            actualStderr,
+            "Success: $expectedSuccessCnt, Failed: $expectedFailedCnt, Total: $expectedTotalCnt",
+        )
         assertEquals(repos.size, processExecutor.executeCount)
     }
 
     @Test
-    fun test_stdout(
+    fun test_empty_stdout(
         @TempDir tempDir: Path,
     ) {
-        val mainArgs = MainArgs.of(listOf("ls-files"))
+        val mainArgs = MainArgs.of(listOf("fetch"))
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
         }
-        val eachProcessStdout = List(exitCodes.size) { index ->
-            createTempTextFile(tempDir, "stdout$index") {
-                println("gradle.properties")
-                println("src/main/resources/file$index")
-            }
-        }
-        val expectedStdout = buildStringByPrintStream {
-            println("repo0/gradle.properties")
-            println("repo0/src/main/resources/file0")
-            println("repo1/gradle.properties")
-            println("repo1/src/main/resources/file1")
-            println("repo2/gradle.properties")
-            println("repo2/src/main/resources/file2")
-        }
+        val eachProcessStdout = tempDir.resolve("empty").createFile()
+            .let { emptyPath -> List(exitCodes.size) { emptyPath } }
+        val expectedStdout = ""
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
         val processManager = GitProcessManager.regular(
@@ -85,8 +86,7 @@ class GitProcessManagerLsFilesTest {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
-        // not contain summary in stderr
-        assert(!actualStderr.contains("Total"))
+        assertContains(actualStderr, Regex("Success: \\d+, Failed: \\d+, Total: \\d+"))
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }

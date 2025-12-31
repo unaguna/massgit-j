@@ -11,6 +11,22 @@ fun trapStdout(action: () -> Unit): String {
     }
 }
 
+fun trapStderr(action: () -> Unit): String {
+    return TrapStderr().use { trapInstance ->
+        action()
+        trapInstance.getTrappedString()
+    }
+}
+
+fun trapStdoutStderr(action: () -> Unit): Trapped {
+    return TrapStdout().use { trapStdoutInstance ->
+        TrapStderr().use { trapStderrInstance ->
+            action()
+            Trapped(out = trapStdoutInstance.getTrappedString(), err = trapStderrInstance.getTrappedString())
+        }
+    }
+}
+
 private class TrapStdout : Closeable {
     private val defaultStdout = System.out
     private val newOutputStream = ByteArrayOutputStream()
@@ -29,3 +45,27 @@ private class TrapStdout : Closeable {
         newStdout.close()
     }
 }
+
+private class TrapStderr : Closeable {
+    private val defaultStderr = System.err
+    private val newOutputStream = ByteArrayOutputStream()
+    private val newStderr = PrintStream(newOutputStream)
+
+    init {
+        System.setErr(newStderr)
+    }
+
+    fun getTrappedString(): String {
+        return newOutputStream.toString()
+    }
+
+    override fun close() {
+        System.setErr(defaultStderr)
+        newStderr.close()
+    }
+}
+
+data class Trapped(
+    val out: String,
+    val err: String,
+)

@@ -4,7 +4,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
 import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
-import jp.unaguna.massgit.testcommon.stdio.trapStdout
+import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderr
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -83,10 +83,12 @@ class GitProcessManagerGrepTest {
             processExecutor,
         )
 
-        val actualStdout = trapStdout {
+        val (actualStdout, actualStderr) = trapStdoutStderr {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
+        // not contain summary in stderr
+        assert(!actualStderr.contains("Total"))
         assertEquals(repos.size, processExecutor.executeCount)
     }
 
@@ -120,10 +122,12 @@ class GitProcessManagerGrepTest {
             processExecutor,
         )
 
-        val actualStdout = trapStdout {
+        val (actualStdout, actualStderr) = trapStdoutStderr {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
+        // not contain summary in stderr
+        assert(!actualStderr.contains("Total"))
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }
