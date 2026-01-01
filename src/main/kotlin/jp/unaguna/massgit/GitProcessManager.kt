@@ -137,7 +137,7 @@ open class GitProcessRegularManager protected constructor(
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(mainArgs.subCommand)
+        append(mainArgs.subCommand.name)
         append(mainArgs.subOptions)
     }
 
@@ -156,7 +156,7 @@ open class GitProcessRegularManager protected constructor(
             mainArgs: MainArgs,
             processExecutor: ProcessExecutor = ProcessExecutor.default(),
         ): GitProcessRegularManager {
-            return when (mainArgs.subCommand) {
+            return when (mainArgs.subCommand?.name) {
                 "diff" -> GitProcessDiffManager(mainArgs, processExecutor)
                 "grep" -> GitProcessGrepManager(mainArgs, processExecutor)
                 "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor)

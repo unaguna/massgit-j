@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 
 data class MainArgs(
     val mainOptions: MassgitOptions,
-    val subCommand: String?,
+    val subCommand: Subcommand?,
     val subOptions: List<String>,
 ) {
     companion object {
@@ -31,7 +31,7 @@ data class MainArgs(
 
             return MainArgs(
                 mainOptions = mainOptions,
-                subCommand = subCommand,
+                subCommand = subCommand?.let { Subcommand.of(it) },
                 subOptions = subOptions,
             ).also {
                 logger.debug("Interpreted arguments: {}", it)

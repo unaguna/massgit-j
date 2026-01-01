@@ -37,11 +37,12 @@ class Main {
             showVersion()
             return 0
         }
+        // TODO: サブコマンドが無い場合、usage を表示して終了
+        requireNotNull(mainArgs.subCommand)
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
-        val subcommandExecutor = SubcommandExecutor.construct(
-            mainArgs,
+        val subcommandExecutor = mainArgs.subCommand.executor(
             gitProcessManagerFactoryInj,
             reposInj,
         )

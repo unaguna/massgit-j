@@ -38,6 +38,10 @@ class MainConfigurations(
         }
     }
 
+    fun subcommandAcceptation(subcommand: Subcommand): SubcommandAcceptation {
+        return subcommandAcceptation(subcommand.name)
+    }
+
     fun prohibitSubcommand(subcommand: String): Boolean {
         val defaultProhibited = prop.getBoolean(Prop.Key.ProhibitedSubcommandDefault) ?: false
 

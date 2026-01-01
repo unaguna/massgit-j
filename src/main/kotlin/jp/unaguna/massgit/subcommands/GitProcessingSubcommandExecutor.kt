@@ -4,6 +4,7 @@ import jp.unaguna.massgit.GitProcessManager
 import jp.unaguna.massgit.GitProcessManagerFactory
 import jp.unaguna.massgit.MainArgs
 import jp.unaguna.massgit.MainConfigurations
+import jp.unaguna.massgit.Subcommand
 import jp.unaguna.massgit.SubcommandExecutor
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.exception.LoadingReposFailedException
@@ -49,11 +50,9 @@ private class GitProcessManagerFactoryImpl(
 ) : GitProcessManagerFactory {
     @Suppress("ThrowsCount")
     override fun create(): GitProcessManager {
-        requireNotNull(mainArgs.subCommand) {
-            throw UnknownSubcommandException("")
-        }
+        requireNotNull(mainArgs.subCommand) { "Subcommand not specified." }
 
-        if (mainArgs.subCommand == "mg-clone") {
+        if (mainArgs.subCommand == Subcommand.MgClone) {
             return GitProcessManager.cloneAll(
                 repSuffix = conf.repSuffix,
             )
@@ -73,11 +72,11 @@ private class GitProcessManagerFactoryImpl(
     }
 }
 
-private class ProhibitedSubcommandException(subcommand: String) :
-    MassgitException("subcommand '$subcommand' is prohibited")
+private class ProhibitedSubcommandException(subcommand: Subcommand) :
+    MassgitException("subcommand '${subcommand.name}' is prohibited")
 
-private class UnknownSubcommandException(subcommand: String) :
-    MassgitException("unknown subcommand '$subcommand'")
+private class UnknownSubcommandException(subcommand: Subcommand) :
+    MassgitException("unknown subcommand '${subcommand.name}'")
 
 private class NoRepositoriesRegisteredException :
     MassgitException("No target repositories have been registered.")

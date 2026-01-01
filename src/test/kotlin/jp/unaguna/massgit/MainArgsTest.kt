@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class MainArgsTest {
     @ParameterizedTest
     @MethodSource("paramsOfTestSubCommand")
-    fun testSubCommand(argsStr: List<String>, expectedSubCommand: String?) {
+    fun testSubCommand(argsStr: List<String>, expectedSubCommand: Subcommand?) {
         val args = MainArgs.of(argsStr)
 
         assertEquals(expectedSubCommand, args.subCommand)
@@ -31,12 +31,12 @@ class MainArgsTest {
             arguments(listOf("--rep-suffix", "@"), null),
             arguments(listOf("--rep-suffix=@"), null),
             arguments(listOf("--version"), null),
-            arguments(listOf("grep"), "grep"),
-            arguments(listOf("--rep-suffix", "@", "grep"), "grep"),
-            arguments(listOf("--rep-suffix=@", "grep"), "grep"),
-            arguments(listOf("grep", "--dummy"), "grep"),
-            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), "grep"),
-            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), "grep"),
+            arguments(listOf("grep"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix", "@", "grep"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix=@", "grep"), Subcommand.of("grep")),
+            arguments(listOf("grep", "--dummy"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), Subcommand.of("grep")),
         )
 
         @JvmStatic
