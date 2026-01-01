@@ -22,22 +22,6 @@ import java.util.concurrent.TimeUnit
 
 interface GitProcessManager {
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null): Int
-
-    companion object {
-        fun regular(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor? = null,
-        ): GitProcessManager {
-            return GitProcessRegularManager.construct(mainArgs, processExecutor ?: ProcessExecutor.default())
-        }
-
-        fun cloneAll(
-            repSuffix: String?,
-            processExecutor: ProcessExecutor? = null,
-        ): GitProcessManager {
-            return CloneProcessManager(repSuffix, processExecutor ?: ProcessExecutor.default())
-        }
-    }
 }
 
 abstract class GitProcessManagerBase(

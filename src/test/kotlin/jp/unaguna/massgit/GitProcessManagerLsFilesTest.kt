@@ -37,13 +37,15 @@ class GitProcessManagerLsFilesTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("ls-files"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = exitCodesStr.split(":").map { it.toInt() }
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
         }
         val processExecutor = DummyProcessExecutor(exitCodes)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
@@ -57,6 +59,7 @@ class GitProcessManagerLsFilesTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("ls-files"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -77,8 +80,9 @@ class GitProcessManagerLsFilesTest {
         }
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 

@@ -43,6 +43,8 @@ class Main {
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
         val subcommandExecutor = mainArgs.subCommand.executor(
+            mainArgs,
+            conf,
             processExecutor,
             reposInj,
         )
