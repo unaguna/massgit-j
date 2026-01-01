@@ -47,7 +47,40 @@ sealed class Subcommand(val name: String) {
         }
     }
 
-    class Other(name: String) : Subcommand(name) {
+    object Diff : GitSubcommand("diff") {
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            check(mainArgs.subCommand == this)
+            return GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        }
+    }
+
+    object Grep : GitSubcommand("grep") {
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            check(mainArgs.subCommand == this)
+            return GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        }
+    }
+
+    object LsFiles : GitSubcommand("ls-files") {
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            check(mainArgs.subCommand == this)
+            return GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        }
+    }
+
+    sealed class GitSubcommand(name: String) : Subcommand(name) {
         override fun executor(
             mainArgs: MainArgs,
             conf: MainConfigurations,
@@ -64,15 +97,16 @@ sealed class Subcommand(val name: String) {
             mainArgs: MainArgs,
             conf: MainConfigurations,
             processExecutor: ProcessExecutor?
-        ): GitProcessManager = when (mainArgs.subCommand?.name) {
-            "diff" -> GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-            "grep" -> GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-            "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-            else -> GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        ): GitProcessManager = GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+    }
+
+    class OtherGitSubcommand(name: String) : GitSubcommand(name) {
+        init {
+            check(!fixedGitSubcommands.containsKey(name))
         }
 
         override fun equals(other: Any?): Boolean {
-            return other is Other && other.name == this.name
+            return other is OtherGitSubcommand && other.name == this.name
         }
 
         override fun hashCode(): Int {
@@ -81,10 +115,21 @@ sealed class Subcommand(val name: String) {
     }
 
     companion object {
+        private val fixedGitSubcommands = mapOf(
+            Diff.name to Diff,
+            Grep.name to Grep,
+            LsFiles.name to LsFiles,
+            // When new subcommand object is added here,
+            // it must be added also in the tests:
+            // 'MainArgsTest.testSubCommandObject()'
+            // and 'SubcommandTest.testOtherGitSubcommandConstructionError()'.
+        )
+
         fun of(subcommand: String): Subcommand {
-            return when (subcommand) {
-                "mg-clone" -> MgClone
-                else -> Other(subcommand)
+            return when {
+                subcommand == "mg-clone" -> MgClone
+                fixedGitSubcommands.containsKey(subcommand) -> fixedGitSubcommands[subcommand]!!
+                else -> OtherGitSubcommand(subcommand)
             }
         }
     }

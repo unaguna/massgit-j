@@ -17,6 +17,14 @@ class MainArgsTest {
     }
 
     @ParameterizedTest
+    @MethodSource("paramsOfTestSubCommandObject")
+    fun testSubCommandObject(argsStr: List<String>, expectedSubCommand: Subcommand?) {
+        val args = MainArgs.of(argsStr)
+
+        assertEquals(expectedSubCommand, args.subCommand)
+    }
+
+    @ParameterizedTest
     @MethodSource("paramsOfTestSubOptions")
     fun testSubOptions(argsStr: List<String>, expectedSubOptions: List<String>) {
         val args = MainArgs.of(argsStr)
@@ -37,6 +45,19 @@ class MainArgsTest {
             arguments(listOf("grep", "--dummy"), Subcommand.of("grep")),
             arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), Subcommand.of("grep")),
             arguments(listOf("--rep-suffix=@", "grep", "--dummy"), Subcommand.of("grep")),
+        )
+
+        @JvmStatic
+        fun paramsOfTestSubCommandObject(): Stream<Arguments> = Stream.of(
+            arguments(listOf("grep"), Subcommand.Grep),
+            arguments(listOf("diff"), Subcommand.Diff),
+            arguments(listOf("ls-files"), Subcommand.LsFiles),
+            arguments(listOf("fetch"), Subcommand.OtherGitSubcommand("fetch")),
+            arguments(listOf("pull"), Subcommand.OtherGitSubcommand("pull")),
+            arguments(listOf("push"), Subcommand.OtherGitSubcommand("push")),
+            arguments(listOf("switch"), Subcommand.OtherGitSubcommand("switch")),
+            arguments(listOf("reset"), Subcommand.OtherGitSubcommand("reset")),
+            arguments(listOf("checkout"), Subcommand.OtherGitSubcommand("checkout")),
         )
 
         @JvmStatic
