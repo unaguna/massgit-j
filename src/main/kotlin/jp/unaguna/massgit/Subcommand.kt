@@ -16,7 +16,7 @@ sealed class Subcommand(val name: String) {
     object MgClone : Subcommand("mg-clone") {
         override fun executor(processExecutor: ProcessExecutor?, reposInj: List<Repo>?) =
             GitProcessingSubcommandExecutor(
-                name,
+                this,
                 processExecutor,
                 reposInj,
             )
@@ -25,7 +25,7 @@ sealed class Subcommand(val name: String) {
     class Other(name: String) : Subcommand(name) {
         override fun executor(processExecutor: ProcessExecutor?, reposInj: List<Repo>?) =
             GitProcessingSubcommandExecutor(
-                name,
+                this,
                 processExecutor,
                 reposInj,
             )

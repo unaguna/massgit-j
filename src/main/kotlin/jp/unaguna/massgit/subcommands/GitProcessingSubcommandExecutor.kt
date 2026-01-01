@@ -13,7 +13,7 @@ import jp.unaguna.massgit.exception.MassgitException
 import org.slf4j.LoggerFactory
 
 class GitProcessingSubcommandExecutor(
-    override val subcommand: String,
+    override val subcommand: Subcommand,
     private val processExecutor: ProcessExecutor? = null,
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
