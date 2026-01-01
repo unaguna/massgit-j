@@ -5,7 +5,7 @@ import jp.unaguna.massgit.subcommands.GitProcessingSubcommandExecutor
 
 sealed class Subcommand(val name: String) {
     abstract fun executor(
-        gitProcessManagerFactoryInj: GitProcessManagerFactory? = null,
+        processExecutor: ProcessExecutor? = null,
         reposInj: List<Repo>? = null,
     ): SubcommandExecutor
 
@@ -14,19 +14,19 @@ sealed class Subcommand(val name: String) {
     }
 
     object MgClone : Subcommand("mg-clone") {
-        override fun executor(gitProcessManagerFactoryInj: GitProcessManagerFactory?, reposInj: List<Repo>?) =
+        override fun executor(processExecutor: ProcessExecutor?, reposInj: List<Repo>?) =
             GitProcessingSubcommandExecutor(
                 name,
-                gitProcessManagerFactoryInj,
+                processExecutor,
                 reposInj,
             )
     }
 
     class Other(name: String) : Subcommand(name) {
-        override fun executor(gitProcessManagerFactoryInj: GitProcessManagerFactory?, reposInj: List<Repo>?) =
+        override fun executor(processExecutor: ProcessExecutor?, reposInj: List<Repo>?) =
             GitProcessingSubcommandExecutor(
                 name,
-                gitProcessManagerFactoryInj,
+                processExecutor,
                 reposInj,
             )
 

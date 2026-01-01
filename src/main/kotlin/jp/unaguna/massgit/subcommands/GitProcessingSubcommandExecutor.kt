@@ -4,6 +4,7 @@ import jp.unaguna.massgit.GitProcessManager
 import jp.unaguna.massgit.GitProcessManagerFactory
 import jp.unaguna.massgit.MainArgs
 import jp.unaguna.massgit.MainConfigurations
+import jp.unaguna.massgit.ProcessExecutor
 import jp.unaguna.massgit.Subcommand
 import jp.unaguna.massgit.SubcommandExecutor
 import jp.unaguna.massgit.configfile.Repo
@@ -13,12 +14,11 @@ import org.slf4j.LoggerFactory
 
 class GitProcessingSubcommandExecutor(
     override val subcommand: String,
-    private val gitProcessManagerFactoryInj: GitProcessManagerFactory? = null,
+    private val processExecutor: ProcessExecutor? = null,
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
-        val gitProcessManagerFactory = gitProcessManagerFactoryInj
-            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
+        val gitProcessManagerFactory = GitProcessManagerFactoryImpl(mainArgs, conf, processExecutor)
         val gitProcessManager = gitProcessManagerFactory.create()
 
         val repos = reposInj ?: runCatching {
@@ -47,6 +47,7 @@ class GitProcessingSubcommandExecutor(
 private class GitProcessManagerFactoryImpl(
     private val mainArgs: MainArgs,
     private val conf: MainConfigurations,
+    private val processExecutor: ProcessExecutor? = null,
 ) : GitProcessManagerFactory {
     @Suppress("ThrowsCount")
     override fun create(): GitProcessManager {
@@ -55,6 +56,7 @@ private class GitProcessManagerFactoryImpl(
         if (mainArgs.subCommand == Subcommand.MgClone) {
             return GitProcessManager.cloneAll(
                 repSuffix = conf.repSuffix,
+                processExecutor,
             )
         } else {
             when (conf.subcommandAcceptation(mainArgs.subCommand)) {
@@ -67,7 +69,7 @@ private class GitProcessManagerFactoryImpl(
                 MainConfigurations.SubcommandAcceptation.OK -> Unit
             }
 
-            return GitProcessManager.regular(mainArgs)
+            return GitProcessManager.regular(mainArgs, processExecutor)
         }
     }
 }

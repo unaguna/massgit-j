@@ -26,13 +26,16 @@ interface GitProcessManager {
     companion object {
         fun regular(
             mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
+            processExecutor: ProcessExecutor? = null,
         ): GitProcessManager {
-            return GitProcessRegularManager.construct(mainArgs, processExecutor)
+            return GitProcessRegularManager.construct(mainArgs, processExecutor ?: ProcessExecutor.default())
         }
 
-        fun cloneAll(repSuffix: String?): GitProcessManager {
-            return CloneProcessManager(repSuffix)
+        fun cloneAll(
+            repSuffix: String?,
+            processExecutor: ProcessExecutor? = null,
+        ): GitProcessManager {
+            return CloneProcessManager(repSuffix, processExecutor ?: ProcessExecutor.default())
         }
     }
 }

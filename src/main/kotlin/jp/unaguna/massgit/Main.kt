@@ -20,7 +20,7 @@ class Main {
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
-        gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
+        processExecutor: ProcessExecutor? = null,
     ): Int {
         if (mainArgs.mainOptions.isHelp()) {
             val helpUrl = this::class.java.getResource("/massgit-help.json")
@@ -43,7 +43,7 @@ class Main {
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
         val subcommandExecutor = mainArgs.subCommand.executor(
-            gitProcessManagerFactoryInj,
+            processExecutor,
             reposInj,
         )
 
