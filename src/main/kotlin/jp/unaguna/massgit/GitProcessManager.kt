@@ -114,7 +114,7 @@ abstract class GitProcessManagerBase(
     }
 }
 
-open class GitProcessRegularManager protected constructor(
+open class GitProcessRegularManager(
     protected val mainArgs: MainArgs,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManagerBase(processExecutor) {
@@ -136,20 +136,6 @@ open class GitProcessRegularManager protected constructor(
         return PrintManagerThrough(
             LineHeadFilter("${repo.dirname}$repSuffix")
         )
-    }
-
-    companion object {
-        fun construct(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
-        ): GitProcessRegularManager {
-            return when (mainArgs.subCommand?.name) {
-                "diff" -> GitProcessDiffManager(mainArgs, processExecutor)
-                "grep" -> GitProcessGrepManager(mainArgs, processExecutor)
-                "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor)
-                else -> GitProcessRegularManager(mainArgs, processExecutor)
-            }
-        }
     }
 }
 

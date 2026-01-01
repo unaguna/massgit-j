@@ -72,8 +72,11 @@ sealed class Subcommand(val name: String) {
             MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
                 throw UnknownSubcommandException(this)
             }
-            MainConfigurations.SubcommandAcceptation.OK -> {
-                GitProcessRegularManager.construct(mainArgs, processExecutor ?: ProcessExecutor.default())
+            MainConfigurations.SubcommandAcceptation.OK -> when (mainArgs.subCommand?.name) {
+                "diff" -> GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+                "grep" -> GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+                "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+                else -> GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
             }
         }
 
