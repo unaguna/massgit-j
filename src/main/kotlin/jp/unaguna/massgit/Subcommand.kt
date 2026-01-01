@@ -1,7 +1,6 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
-import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.subcommands.GitProcessingSubcommandExecutor
 
 sealed class Subcommand(val name: String) {
@@ -65,19 +64,11 @@ sealed class Subcommand(val name: String) {
             mainArgs: MainArgs,
             conf: MainConfigurations,
             processExecutor: ProcessExecutor?
-        ): GitProcessManager = when (conf.subcommandAcceptation(this)) {
-            MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
-                throw ProhibitedSubcommandException(this)
-            }
-            MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
-                throw UnknownSubcommandException(this)
-            }
-            MainConfigurations.SubcommandAcceptation.OK -> when (mainArgs.subCommand?.name) {
-                "diff" -> GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-                "grep" -> GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-                "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-                else -> GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
-            }
+        ): GitProcessManager = when (mainArgs.subCommand?.name) {
+            "diff" -> GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            "grep" -> GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            else -> GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
         }
 
         override fun equals(other: Any?): Boolean {
@@ -98,9 +89,3 @@ sealed class Subcommand(val name: String) {
         }
     }
 }
-
-private class ProhibitedSubcommandException(subcommand: Subcommand) :
-    MassgitException("subcommand '${subcommand.name}' is prohibited")
-
-private class UnknownSubcommandException(subcommand: Subcommand) :
-    MassgitException("unknown subcommand '${subcommand.name}'")

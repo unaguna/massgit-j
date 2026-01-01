@@ -42,6 +42,17 @@ class Main {
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
+        // check whether the subcommand is accepted
+        when (conf.subcommandAcceptation(mainArgs.subCommand)) {
+            MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
+                throw ProhibitedSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
+                throw UnknownSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.OK -> Unit
+        }
+
         val subcommandExecutor = mainArgs.subCommand.executor(
             mainArgs,
             conf,
@@ -85,3 +96,9 @@ class Main {
         }
     }
 }
+
+private class ProhibitedSubcommandException(subcommand: Subcommand) :
+    MassgitException("subcommand '${subcommand.name}' is prohibited")
+
+private class UnknownSubcommandException(subcommand: Subcommand) :
+    MassgitException("unknown subcommand '${subcommand.name}'")
