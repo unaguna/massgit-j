@@ -1,6 +1,7 @@
 package jp.unaguna.massgit.common.args
 
 import org.junit.jupiter.api.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class OptionsTest {
@@ -12,20 +13,25 @@ class OptionsTest {
         val opt1List = actualOptions.of(SampleOptionDef.OPT1)
         assertEquals(1, opt1List.size)
         assertEquals(SampleOptionDef.OPT1, opt1List[0].def)
+        assertContentEquals(emptyList(), opt1List[0].args)
         assertEquals(0, opt1List[0].order)
         val opt2List = actualOptions.of(SampleOptionDef.OPT2)
         assertEquals(0, opt2List.size)
         val arg1List = actualOptions.of(SampleOptionDef.ARG1)
         assertEquals(2, arg1List.size)
         assertEquals(SampleOptionDef.ARG1, arg1List[0].def)
+        assertContentEquals(listOf("arg1-1"), arg1List[0].args)
         assertEquals(1, arg1List[0].order)
         assertEquals(SampleOptionDef.ARG1, arg1List[1].def)
+        assertContentEquals(listOf("arg1-2"), arg1List[1].args)
         assertEquals(3, arg1List[1].order)
         val arg2List = actualOptions.of(SampleOptionDef.ARG2)
         assertEquals(2, arg2List.size)
         assertEquals(SampleOptionDef.ARG2, arg2List[0].def)
+        assertContentEquals(listOf("arg2-1"), arg2List[0].args)
         assertEquals(2, arg2List[0].order)
         assertEquals(SampleOptionDef.ARG2, arg2List[1].def)
+        assertContentEquals(listOf("arg2-2"), arg2List[1].args)
         assertEquals(4, arg2List[1].order)
     }
 }
