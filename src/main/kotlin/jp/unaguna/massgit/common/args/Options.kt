@@ -76,9 +76,11 @@ class OptionsImpl<D : OptionDef> private constructor(
 ) : Map<D, List<Option<D>>> by optionMap, Options<D> {
     constructor(optionDefProvider: OptionDefProvider<D>) : this(optionDefProvider, mutableMapOf())
 
+    private var nextOrder: Int = 0
+
     fun addOption(optionDef: D): OptionImpl<D> {
         val options = optionMap.getOrPut(optionDef) { mutableListOf() }
-        val option = OptionImpl(optionDef)
+        val option = OptionImpl(nextOrder++, optionDef)
         options.add(option)
         return option
     }

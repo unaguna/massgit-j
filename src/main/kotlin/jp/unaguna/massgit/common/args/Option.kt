@@ -1,6 +1,7 @@
 package jp.unaguna.massgit.common.args
 
 interface Option<D : OptionDef> {
+    val order: Int
     val def: D
     val args: List<String>
 
@@ -9,7 +10,7 @@ interface Option<D : OptionDef> {
     }
 }
 
-class OptionImpl<D : OptionDef>(override val def: D) : Option<D> {
+class OptionImpl<D : OptionDef>(override val order: Int, override val def: D) : Option<D> {
     override val args = mutableListOf<String>()
 
     fun push(arg: String) {
