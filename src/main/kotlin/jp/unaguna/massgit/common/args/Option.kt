@@ -1,6 +1,7 @@
 package jp.unaguna.massgit.common.args
 
 interface Option<D : OptionDef> {
+    /** the order in original arguments list */
     val order: Int
     val def: D
     val args: List<String>

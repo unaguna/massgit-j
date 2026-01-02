@@ -34,6 +34,23 @@ class OptionsTest {
         assertContentEquals(listOf("arg2-2"), arg2List[1].args)
         assertEquals(4, arg2List[1].order)
     }
+
+    @Test
+    fun `test ofOrdered()`() {
+        val args = listOf("--opt1", "--arg1", "arg1-1", "--arg2", "arg2-1", "--arg1", "arg1-2", "--arg2", "arg2-2")
+        val (actualOptions, _) = Options.build(args, SampleOptionDefProvider)
+        val actualOrdered = actualOptions.ofOrdered(SampleOptionDef.ARG1, SampleOptionDef.ARG2)
+
+        assertEquals(4, actualOrdered.size)
+        assertEquals(SampleOptionDef.ARG1, actualOrdered[0].def)
+        assertContentEquals(listOf("arg1-1"), actualOrdered[0].args)
+        assertEquals(SampleOptionDef.ARG2, actualOrdered[1].def)
+        assertContentEquals(listOf("arg2-1"), actualOrdered[1].args)
+        assertEquals(SampleOptionDef.ARG1, actualOrdered[2].def)
+        assertContentEquals(listOf("arg1-2"), actualOrdered[2].args)
+        assertEquals(SampleOptionDef.ARG2, actualOrdered[3].def)
+        assertContentEquals(listOf("arg2-2"), actualOrdered[3].args)
+    }
 }
 
 private enum class SampleOptionDef(override val representativeName: String, val argsNum: Int) : OptionDef {
