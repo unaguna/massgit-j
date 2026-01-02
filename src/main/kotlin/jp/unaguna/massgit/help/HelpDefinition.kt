@@ -79,6 +79,76 @@ data class HelpDefinition(
         }
     }
 
+    @Suppress("LongParameterList")
+    fun printSubcommand(
+        out: PrintStream,
+        cmd: String = name,
+        subcommand: String,
+        windowWidth: Int = 120,
+        @Suppress("MagicNumber")
+        optionWidth: Int = (windowWidth / 5),
+        indentSize: Int = 4,
+    ) {
+        require(optionWidth > 0) { "optionWidth must be greater than zero" }
+        require(windowWidth > 0) { "windowWidth must be greater than zero" }
+        require(optionWidth <= windowWidth - 2) { "optionWidth must be less than or equal to windowWidth - 2" }
+
+        val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
+        val subcommandHelpDef = this.subcommands?.find { it.name == subcommand }
+            ?: error("Subcommand \"${subcommand}\" is not defined")
+
+        if (subcommandHelpDef.description != null) {
+            out.println(subcommandHelpDef.description)
+            out.println()
+        }
+
+        out.println("Usage:")
+        out.withIndent(indentSize) {
+            subcommandHelpDef.usages.forEach { usage ->
+                out.println(usage.format(cmd, subcommand))
+            }
+        }
+        out.println()
+
+        out.println("Options:")
+        out.withIndent(indentSize) {
+            options.forEach { option ->
+                val optionStr = option.toString()
+                out.print(optionStr)
+                if (optionStr.length > optionWidth) {
+                    out.println()
+                    out.print(" ".repeat(optionWidth + 2))
+                } else {
+                    out.print(" ".repeat(optionWidth - optionStr.length + 2))
+                }
+
+                out.withIndent(optionWidth + 2) {
+                    out.println(option.description)
+                }
+            }
+        }
+        out.println()
+
+        out.println("Options for Subcommand:")
+        out.withIndent(indentSize) {
+            subcommandHelpDef.options.forEach { option ->
+                val optionStr = option.toString()
+                out.print(optionStr)
+                if (optionStr.length > optionWidth) {
+                    out.println()
+                    out.print(" ".repeat(optionWidth + 2))
+                } else {
+                    out.print(" ".repeat(optionWidth - optionStr.length + 2))
+                }
+
+                out.withIndent(optionWidth + 2) {
+                    out.println(option.description)
+                }
+            }
+        }
+        out.println()
+    }
+
     companion object {
         fun load(url: URL): HelpDefinition {
             return Json.decodeFromString<HelpDefinition>(url.readText(Charsets.UTF_8))

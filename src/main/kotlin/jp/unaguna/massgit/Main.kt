@@ -22,14 +22,18 @@ class Main {
         reposInj: List<Repo>? = null,
         processExecutor: ProcessExecutor? = null,
     ): Int {
-        if (mainArgs.mainOptions.isHelp()) {
+        if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
             val helpUrl = this::class.java.getResource("/massgit-help.json")
                 ?: error("massgit-help.json could not be found")
             val helpDef = HelpDefinition.load(helpUrl)
 
             // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
             // TODO: ウィンドウサイズを取得して、引数として使用する
-            helpDef.print(System.out, "massgit")
+            when (mainArgs.subCommand) {
+                null -> helpDef.print(System.out, "massgit")
+                // TODO: massgit 専用サブコマンドの場合に限る
+                else -> helpDef.printSubcommand(System.out, "massgit", mainArgs.subCommand.name)
+            }
 
             return 0
         }
