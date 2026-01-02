@@ -6,9 +6,7 @@ import jp.unaguna.massgit.MainConfigurations
 import jp.unaguna.massgit.Subcommand
 import jp.unaguna.massgit.SubcommandExecutor
 import jp.unaguna.massgit.configfile.Repo
-import jp.unaguna.massgit.exception.LoadingReposFailedException
-import jp.unaguna.massgit.exception.NoRepositoriesRegisteredException
-import jp.unaguna.massgit.exception.NoRepositoriesTargetedException
+import jp.unaguna.massgit.configfile.ReposLoader
 import org.slf4j.LoggerFactory
 
 class GitProcessingSubcommandExecutor(
@@ -17,19 +15,7 @@ class GitProcessingSubcommandExecutor(
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
-        val repos = reposInj ?: runCatching {
-            Repo.loadFromFile(conf.reposFilePath)
-        }.getOrElse { t -> throw LoadingReposFailedException(t) }
-        if (repos.isEmpty()) {
-            throw NoRepositoriesRegisteredException()
-        }
-        val reposFiltered = when (val markerConditions = conf.markerConditions) {
-            null -> repos
-            else -> repos.filter { markerConditions.satisfies(it.markers) }
-        }
-        if (reposFiltered.isEmpty()) {
-            throw NoRepositoriesTargetedException()
-        }
+        val reposFiltered = ReposLoader(reposInj).load(conf)
         logger.debug("Repos filtered: {}", reposFiltered)
 
         return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
