@@ -2,6 +2,7 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.subcommands.GitProcessingSubcommandExecutor
+import jp.unaguna.massgit.subcommands.MgMarkerExecutor
 
 sealed class Subcommand(val name: String) {
     abstract fun executor(
@@ -44,6 +45,25 @@ sealed class Subcommand(val name: String) {
                 repSuffix = conf.repSuffix,
                 processExecutor ?: ProcessExecutor.default(),
             )
+        }
+    }
+
+    object MgMarker : Subcommand("mg-marker") {
+        override fun executor(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?,
+            reposInj: List<Repo>?,
+        ): SubcommandExecutor {
+            return MgMarkerExecutor(this, reposInj)
+        }
+
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            throw UnsupportedOperationException()
         }
     }
 
@@ -128,6 +148,7 @@ sealed class Subcommand(val name: String) {
         fun of(subcommand: String): Subcommand {
             return when {
                 subcommand == "mg-clone" -> MgClone
+                subcommand == "mg-marker" -> MgMarker
                 fixedGitSubcommands.containsKey(subcommand) -> fixedGitSubcommands[subcommand]!!
                 else -> OtherGitSubcommand(subcommand)
             }

@@ -1,6 +1,5 @@
 package jp.unaguna.massgit.subcommands
 
-import jp.unaguna.massgit.GitProcessManager
 import jp.unaguna.massgit.MainArgs
 import jp.unaguna.massgit.MainConfigurations
 import jp.unaguna.massgit.Subcommand
@@ -11,9 +10,8 @@ import jp.unaguna.massgit.exception.NoRepositoriesRegisteredException
 import jp.unaguna.massgit.exception.NoRepositoriesTargetedException
 import org.slf4j.LoggerFactory
 
-class GitProcessingSubcommandExecutor(
+class MgMarkerExecutor(
     override val subcommand: Subcommand,
-    private val gitProcessManager: GitProcessManager,
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
@@ -32,10 +30,17 @@ class GitProcessingSubcommandExecutor(
         }
         logger.debug("Repos filtered: {}", reposFiltered)
 
-        return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
+        return listMarkers(reposFiltered)
+    }
+
+    private fun listMarkers(reposFiltered: List<Repo>): Int {
+        for (repo in reposFiltered) {
+            println("${repo.dirname} ${repo.markers.joinToString(",")}")
+        }
+        return 0
     }
 
     companion object {
-        private val logger by lazy { LoggerFactory.getLogger(GitProcessingSubcommandExecutor::class.java) }
+        private val logger by lazy { LoggerFactory.getLogger(MgMarkerExecutor::class.java) }
     }
 }
