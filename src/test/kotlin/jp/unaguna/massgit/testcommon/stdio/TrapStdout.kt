@@ -11,6 +11,14 @@ fun trapStdout(action: () -> Unit): String {
     }
 }
 
+fun <R> trapStdoutAndResult(action: () -> R): Pair<String, R> {
+    return TrapStdout().use { trapInstance ->
+        val result = action()
+        val stdout = trapInstance.getTrappedString()
+        Pair(stdout, result)
+    }
+}
+
 fun trapStderr(action: () -> Unit): String {
     return TrapStderr().use { trapInstance ->
         action()

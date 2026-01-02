@@ -4,9 +4,14 @@ import jp.unaguna.massgit.MainArgs
 import jp.unaguna.massgit.MainConfigurations
 import jp.unaguna.massgit.Subcommand
 import jp.unaguna.massgit.SubcommandExecutor
+import jp.unaguna.massgit.common.args.Option
+import jp.unaguna.massgit.common.args.OptionDefProvider
+import jp.unaguna.massgit.common.args.Options
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.ReposLoader
+import jp.unaguna.massgit.exception.MassgitException
 import org.slf4j.LoggerFactory
+import java.util.Locale.getDefault
 
 class MgMarkerExecutor(
     override val subcommand: Subcommand,
@@ -16,11 +21,43 @@ class MgMarkerExecutor(
         val reposFiltered = ReposLoader(reposInj).load(conf)
         logger.debug("Repos filtered: {}", reposFiltered)
 
-        return listMarkers(reposFiltered)
+        val modeStr = mainArgs.subOptions.getOrNull(0)
+            ?: throw MgMarkerNullModeException()
+        val mode = try {
+            MgMarkerMode.valueOf(modeStr.uppercase(getDefault()))
+        } catch (e: IllegalArgumentException) {
+            throw IllegalMgMarkerModeException(modeStr, e)
+        }
+
+        val optionsForMode = mainArgs.subOptions.subList(1, mainArgs.subOptions.size)
+        val (mgMarkerOptions, targetReposTmp) = MgMarkerOptions.build(optionsForMode)
+        val targetRepos = targetReposTmp.ifEmpty { null }
+
+        return when (mode) {
+            MgMarkerMode.LIST -> listMarkers(reposFiltered, mgMarkerOptions, targetRepos)
+            MgMarkerMode.EDIT -> TODO("Not implemented yet")
+        }
     }
 
-    private fun listMarkers(reposFiltered: List<Repo>): Int {
-        for (repo in reposFiltered) {
+    private fun listMarkers(
+        reposFiltered: List<Repo>,
+        mgMarkerOptions: MgMarkerOptions,
+        targetRepos: List<String>?,
+    ): Int {
+        if (mgMarkerOptions.isNotEmpty()) {
+            // TODO: 適切な Massgit 例外に置き換え
+            error("'mg-marker list' cannot receive options")
+        }
+
+        val reposList = if (targetRepos != null) {
+            val reposFilteredNameMap = reposFiltered.associateBy { it.dirname }
+            // TODO: フィルタリング前のreposにもない名前が指定されていたらエラーメッセージを出力してexitCodeを非0にする
+            targetRepos.mapNotNull { repoName -> reposFilteredNameMap[repoName] }
+        } else {
+            reposFiltered
+        }
+
+        for (repo in reposList) {
             println("${repo.dirname} ${repo.markers.joinToString(",")}")
         }
         return 0
@@ -30,3 +67,62 @@ class MgMarkerExecutor(
         private val logger by lazy { LoggerFactory.getLogger(MgMarkerExecutor::class.java) }
     }
 }
+
+private enum class MgMarkerMode {
+    LIST,
+    EDIT,
+}
+
+private enum class MgMarkerOptionsDef(
+    val names: List<String>,
+    val argNum: Int,
+) : jp.unaguna.massgit.common.args.OptionDef {
+    HELP(listOf("--help"), 0),
+    ;
+    override val representativeName = names[0]
+
+    /**
+     * Judge sufficiency of args
+     *
+     * @return true if the specified number is valid as the number of arguments or exceeds it, or false otherwise.
+     */
+    override fun sufficient(actualNum: Int): Boolean {
+        return actualNum >= this.argNum
+    }
+}
+
+private class MgMarkerOptions(
+    private val options: Options<MgMarkerOptionsDef>,
+) : Map<MgMarkerOptionsDef, List<Option<MgMarkerOptionsDef>>> by options {
+    fun isHelp() = contains(MgMarkerOptionsDef.HELP)
+
+    override fun toString(): String {
+        return options.toString()
+    }
+
+    companion object {
+        fun build(args: List<String>): Pair<MgMarkerOptions, List<String>> {
+            val (mainOptionsInner, remainingArgs) = Options.build(args, MgMarkerOptionsProvider)
+            return Pair(MgMarkerOptions(mainOptionsInner), remainingArgs)
+        }
+
+        private object MgMarkerOptionsProvider : OptionDefProvider<MgMarkerOptionsDef> {
+            private val mgMarkerOptionDef: Map<String, MgMarkerOptionsDef> = MgMarkerOptionsDef.entries
+                .flatMap { it.names.map { name -> Pair(name, it) } }
+                .associate { it }
+
+            override fun getOptionDef(name: String): MgMarkerOptionsDef {
+                return mgMarkerOptionDef.getOrElse(name) {
+                    throw UnknownOptionException(name)
+                }
+            }
+        }
+    }
+}
+
+private class UnknownOptionException(unknownOption: String) : MassgitException("Unknown option: $unknownOption")
+
+private class MgMarkerNullModeException : MassgitException("mode must be 'list' or 'edit'; specified mode: null")
+
+private class IllegalMgMarkerModeException(mode: String, cause: Throwable? = null) :
+    MassgitException("mode must be 'list' or 'edit'; specified mode: '$mode'", cause)
