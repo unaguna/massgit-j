@@ -7,9 +7,10 @@ import jp.unaguna.massgit.SubcommandExecutor
 import jp.unaguna.massgit.common.args.Option
 import jp.unaguna.massgit.common.args.OptionDefProvider
 import jp.unaguna.massgit.common.args.Options
+import jp.unaguna.massgit.configfile.MarkerEditQuery
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.configfile.ReposEditor
 import jp.unaguna.massgit.configfile.ReposLoader
-import jp.unaguna.massgit.configfile.ReposWriter
 import jp.unaguna.massgit.exception.MassgitException
 import org.slf4j.LoggerFactory
 import java.util.Locale.getDefault
@@ -86,21 +87,12 @@ class MgMarkerExecutor(
         }
         val reposDirNameSet = reposList.map { it.dirname }.toSet()
 
-        val queries = MgMarkerEditQuery.fromOptions(mgMarkerOptions)
-
-        val newRepos = reposOriginal.map { repo ->
-            when {
-                reposDirNameSet.contains(repo.dirname) -> {
-                    val newMarkers = repo.markers.toMutableList()
-                    queries.forEach { query -> query.edit(newMarkers) }
-                    repo.copy(markers = newMarkers.toList())
-                }
-                else -> repo
-            }
-        }
+        val queries = mgMarkerOptions.getEditQueries()
 
         runCatching {
-            ReposWriter().overwrite(newRepos, conf)
+            val editor = ReposEditor(reposOriginal, conf)
+            editor.editMarkers(queries, reposDirNameSet)
+            editor.overwrite()
         }.onFailure { e ->
             throw UpdateReposFileFailedException(e)
         }
@@ -145,6 +137,15 @@ private class MgMarkerOptions(
         MgMarkerOptionsDef.Remove,
     )
 
+    fun getEditQueries(): List<MarkerEditQuery> {
+        return this.getEditOptions().map { option ->
+            when (option.def) {
+                MgMarkerOptionsDef.Add -> MarkerEditQuery.Add(option.getOneArg())
+                MgMarkerOptionsDef.Remove -> MarkerEditQuery.Remove(option.getOneArg())
+            }
+        }
+    }
+
     override fun toString(): String {
         return options.toString()
     }
@@ -163,35 +164,6 @@ private class MgMarkerOptions(
             override fun getOptionDef(name: String): MgMarkerOptionsDef {
                 return mgMarkerOptionDef.getOrElse(name) {
                     throw UnknownOptionException(name)
-                }
-            }
-        }
-    }
-}
-
-private sealed class MgMarkerEditQuery {
-    abstract fun edit(markers: MutableList<String>)
-
-    class Add(val marker: String) : MgMarkerEditQuery() {
-        override fun edit(markers: MutableList<String>) {
-            if (!markers.contains(marker)) {
-                markers.add(marker)
-            }
-        }
-    }
-
-    class Remove(val marker: String) : MgMarkerEditQuery() {
-        override fun edit(markers: MutableList<String>) {
-            markers.remove(marker)
-        }
-    }
-
-    companion object {
-        fun fromOptions(options: MgMarkerOptions): List<MgMarkerEditQuery> {
-            return options.getEditOptions().map { option ->
-                when (option.def) {
-                    MgMarkerOptionsDef.Add -> Add(option.getOneArg())
-                    MgMarkerOptionsDef.Remove -> Remove(option.getOneArg())
                 }
             }
         }
