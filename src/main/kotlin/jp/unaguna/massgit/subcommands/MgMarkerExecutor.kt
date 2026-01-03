@@ -13,7 +13,6 @@ import jp.unaguna.massgit.configfile.ReposEditor
 import jp.unaguna.massgit.configfile.ReposLoader
 import jp.unaguna.massgit.exception.MassgitException
 import org.slf4j.LoggerFactory
-import java.util.Locale.getDefault
 
 class MgMarkerExecutor(
     override val subcommand: Subcommand,
@@ -37,7 +36,7 @@ class MgMarkerExecutor(
         val targetRepos = targetReposTmp.ifEmpty { null }
 
         return when (mode) {
-            MgMarkerMode.LIST -> listMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos)
+            MgMarkerMode.LIST -> listMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
             MgMarkerMode.EDIT -> editMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
         }
     }
@@ -47,6 +46,7 @@ class MgMarkerExecutor(
         reposFiltered: List<Repo>,
         mgMarkerOptions: MgMarkerOptions,
         targetReposByArgs: List<String>?,
+        conf: MainConfigurations,
     ): Int {
         if (mgMarkerOptions.isNotEmpty()) {
             // TODO: 適切な Massgit 例外に置き換え
@@ -77,8 +77,9 @@ class MgMarkerExecutor(
             )
         }
 
+        val repSuffix = conf.repSuffix ?: " "
         for (repo in targetRepos) {
-            println("${repo.dirname} ${repo.markers.joinToString(",")}")
+            println("${repo.dirname}$repSuffix${repo.markers.joinToString(",")}")
         }
         return when {
             nonExistRepoNameSpecified.isNotEmpty() -> EXIT_CODE_NON_EXISTS_REPO_NAME_SPECIFIED

@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Path
 import java.util.stream.Stream
 import kotlin.io.path.writeText
@@ -39,6 +40,35 @@ class MainMgMarkerTest {
         val (actualStdout, actualExitCode) = trapStdoutAndResult {
             Main().run(
                 MainArgs.of(listOf("mg-marker", "list")),
+                reposInj = repos,
+                processExecutor = processExecutor,
+            )
+        }
+
+        assertEquals(expectedStdout, actualStdout)
+        assertEquals(0, actualExitCode)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [":", ",", " "])
+    fun `test --rep-suffix`(repSuffix: String) {
+        val repos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2")),
+            Repo(dirname = "repo2", markers = listOf("m1")),
+            Repo(dirname = "repo3", markers = listOf("m2")),
+            Repo(dirname = "repo4"),
+        )
+        val processExecutor = PreErrorProcessExecutor()
+        val expectedStdout = buildStringByPrintStream {
+            println("repo1${repSuffix}m1,m2")
+            println("repo2${repSuffix}m1")
+            println("repo3${repSuffix}m2")
+            println("repo4$repSuffix")
+        }
+
+        val (actualStdout, actualExitCode) = trapStdoutAndResult {
+            Main().run(
+                MainArgs.of(listOf("--rep-suffix", repSuffix, "mg-marker", "list")),
                 reposInj = repos,
                 processExecutor = processExecutor,
             )
