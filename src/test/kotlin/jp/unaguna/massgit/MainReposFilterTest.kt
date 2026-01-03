@@ -1,11 +1,10 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import java.nio.file.Path
 import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
 
 class MainReposFilterTest {
     @ParameterizedTest
@@ -29,29 +28,16 @@ class MainReposFilterTest {
             Repo(dirname = "repo3", markers = listOf("m2")),
             Repo(dirname = "repo4"),
         )
-        val gitProcessManagerFactory = DummyProcessManagerFactory()
+        val processExecutor = DummyProcessExecutor(
+            exitCodes = listOf(0, 0, 0, 0),
+        )
 
         Main().run(
             MainArgs.of(listOf(optM, markerExpression, "ls-files")),
             reposInj = repos,
-            gitProcessManagerFactoryInj = gitProcessManagerFactory,
+            processExecutor = processExecutor,
         )
 
-        assertEquals(1, gitProcessManagerFactory.reposHistory.size)
-        assertContentEquals(expectedRepos, gitProcessManagerFactory.reposHistory[0].map { it.dirname })
-    }
-
-    private class DummyProcessManagerFactory : GitProcessManagerFactory {
-        val reposHistory = mutableListOf<List<Repo>>()
-
-        override fun create(): GitProcessManager = object : GitProcessManager {
-            override fun run(
-                repos: List<Repo>,
-                massgitBaseDir: Path?
-            ): Int {
-                reposHistory.add(repos)
-                return 0
-            }
-        }
+        assertContentEquals(expectedRepos, processExecutor.getHistories().map { it.dirname })
     }
 }

@@ -39,13 +39,15 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = exitCodesStr.split(":").map { it.toInt() }
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
         }
         val processExecutor = DummyProcessExecutor(exitCodes)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
@@ -59,6 +61,7 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -79,8 +82,9 @@ class GitProcessManagerGrepTest {
         }
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
@@ -98,6 +102,7 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "--name-only", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -118,8 +123,9 @@ class GitProcessManagerGrepTest {
         }
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 

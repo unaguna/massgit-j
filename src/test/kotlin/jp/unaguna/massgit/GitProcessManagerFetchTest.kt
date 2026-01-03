@@ -41,13 +41,15 @@ class GitProcessManagerFetchTest {
     ) {
         val expectedTotalCnt = expectedSuccessCnt + expectedFailedCnt
         val mainArgs = MainArgs.of(listOf("fetch"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = exitCodesStr.split(":").map { it.toInt() }
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
         }
         val processExecutor = DummyProcessExecutor(exitCodes)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
@@ -68,6 +70,7 @@ class GitProcessManagerFetchTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("fetch"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -77,8 +80,9 @@ class GitProcessManagerFetchTest {
         val expectedStdout = ""
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 

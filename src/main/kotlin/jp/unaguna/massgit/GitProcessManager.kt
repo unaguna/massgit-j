@@ -22,19 +22,6 @@ import java.util.concurrent.TimeUnit
 
 interface GitProcessManager {
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null): Int
-
-    companion object {
-        fun regular(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
-        ): GitProcessManager {
-            return GitProcessRegularManager.construct(mainArgs, processExecutor)
-        }
-
-        fun cloneAll(repSuffix: String?): GitProcessManager {
-            return CloneProcessManager(repSuffix)
-        }
-    }
 }
 
 abstract class GitProcessManagerBase(
@@ -127,7 +114,7 @@ abstract class GitProcessManagerBase(
     }
 }
 
-open class GitProcessRegularManager protected constructor(
+open class GitProcessRegularManager(
     protected val mainArgs: MainArgs,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManagerBase(processExecutor) {
@@ -137,7 +124,7 @@ open class GitProcessRegularManager protected constructor(
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(mainArgs.subCommand)
+        append(mainArgs.subCommand.name)
         append(mainArgs.subOptions)
     }
 
@@ -149,20 +136,6 @@ open class GitProcessRegularManager protected constructor(
         return PrintManagerThrough(
             LineHeadFilter("${repo.dirname}$repSuffix")
         )
-    }
-
-    companion object {
-        fun construct(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
-        ): GitProcessRegularManager {
-            return when (mainArgs.subCommand) {
-                "diff" -> GitProcessDiffManager(mainArgs, processExecutor)
-                "grep" -> GitProcessGrepManager(mainArgs, processExecutor)
-                "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor)
-                else -> GitProcessRegularManager(mainArgs, processExecutor)
-            }
-        }
     }
 }
 

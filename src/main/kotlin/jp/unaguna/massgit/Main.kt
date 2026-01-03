@@ -2,7 +2,6 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.SystemProp
-import jp.unaguna.massgit.exception.LoadingReposFailedException
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.help.HelpDefinition
 import jp.unaguna.massgit.logging.LoggingSetUp
@@ -21,16 +20,20 @@ class Main {
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
-        gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
+        processExecutor: ProcessExecutor? = null,
     ): Int {
-        if (mainArgs.mainOptions.isHelp()) {
+        if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
             val helpUrl = this::class.java.getResource("/massgit-help.json")
                 ?: error("massgit-help.json could not be found")
             val helpDef = HelpDefinition.load(helpUrl)
 
             // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
             // TODO: ウィンドウサイズを取得して、引数として使用する
-            helpDef.print(System.out, "massgit")
+            when (mainArgs.subCommand) {
+                null -> helpDef.print(System.out, "massgit")
+                // TODO: massgit 専用サブコマンドの場合に限る
+                else -> helpDef.printSubcommand(System.out, "massgit", mainArgs.subCommand.name)
+            }
 
             return 0
         }
@@ -38,29 +41,30 @@ class Main {
             showVersion()
             return 0
         }
+        // TODO: サブコマンドが無い場合、usage を表示して終了
+        requireNotNull(mainArgs.subCommand)
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
-        val gitProcessManagerFactory = gitProcessManagerFactoryInj
-            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
-        val gitProcessManager = gitProcessManagerFactory.create()
+        // check whether the subcommand is accepted
+        when (conf.subcommandAcceptation(mainArgs.subCommand)) {
+            MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
+                throw ProhibitedSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
+                throw UnknownSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.OK -> Unit
+        }
 
-        val repos = reposInj ?: runCatching {
-            Repo.loadFromFile(conf.reposFilePath)
-        }.getOrElse { t -> throw LoadingReposFailedException(t) }
-        if (repos.isEmpty()) {
-            throw NoRepositoriesRegisteredException()
-        }
-        val reposFiltered = when (val markerConditions = conf.markerConditions) {
-            null -> repos
-            else -> repos.filter { markerConditions.satisfies(it.markers) }
-        }
-        if (reposFiltered.isEmpty()) {
-            throw NoRepositoriesTargetedException()
-        }
-        logger.debug("Repos filtered: {}", reposFiltered)
+        val subcommandExecutor = mainArgs.subCommand.executor(
+            mainArgs,
+            conf,
+            processExecutor,
+            reposInj,
+        )
 
-        return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
+        return subcommandExecutor.execute(conf, mainArgs)
     }
 
     private fun showVersion() {
@@ -97,44 +101,8 @@ class Main {
     }
 }
 
-private class GitProcessManagerFactoryImpl(
-    private val mainArgs: MainArgs,
-    private val conf: MainConfigurations,
-) : GitProcessManagerFactory {
-    @Suppress("ThrowsCount")
-    override fun create(): GitProcessManager {
-        requireNotNull(mainArgs.subCommand) {
-            throw UnknownSubcommandException("")
-        }
+private class ProhibitedSubcommandException(subcommand: Subcommand) :
+    MassgitException("subcommand '${subcommand.name}' is prohibited")
 
-        if (mainArgs.subCommand == "mg-clone") {
-            return GitProcessManager.cloneAll(
-                repSuffix = conf.repSuffix,
-            )
-        } else {
-            when (conf.subcommandAcceptation(mainArgs.subCommand)) {
-                MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
-                    throw ProhibitedSubcommandException(mainArgs.subCommand)
-                }
-                MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
-                    throw UnknownSubcommandException(mainArgs.subCommand)
-                }
-                MainConfigurations.SubcommandAcceptation.OK -> Unit
-            }
-
-            return GitProcessManager.regular(mainArgs)
-        }
-    }
-}
-
-private class ProhibitedSubcommandException(subcommand: String) :
-    MassgitException("subcommand '$subcommand' is prohibited")
-
-private class UnknownSubcommandException(subcommand: String) :
-    MassgitException("unknown subcommand '$subcommand'")
-
-private class NoRepositoriesRegisteredException :
-    MassgitException("No target repositories have been registered.")
-
-private class NoRepositoriesTargetedException :
-    MassgitException("No repositories were targeted.")
+private class UnknownSubcommandException(subcommand: Subcommand) :
+    MassgitException("unknown subcommand '${subcommand.name}'")

@@ -11,6 +11,14 @@ fun trapStdout(action: () -> Unit): String {
     }
 }
 
+fun <R> trapStdoutAndResult(action: () -> R): Pair<String, R> {
+    return TrapStdout().use { trapInstance ->
+        val result = action()
+        val stdout = trapInstance.getTrappedString()
+        Pair(stdout, result)
+    }
+}
+
 fun trapStderr(action: () -> Unit): String {
     return TrapStderr().use { trapInstance ->
         action()
@@ -23,6 +31,19 @@ fun trapStdoutStderr(action: () -> Unit): Trapped {
         TrapStderr().use { trapStderrInstance ->
             action()
             Trapped(out = trapStdoutInstance.getTrappedString(), err = trapStderrInstance.getTrappedString())
+        }
+    }
+}
+
+fun <R> trapStdoutStderrResult(action: () -> R): TrappedAndResult<R> {
+    return TrapStdout().use { trapStdoutInstance ->
+        TrapStderr().use { trapStderrInstance ->
+            val result = action()
+            TrappedAndResult(
+                out = trapStdoutInstance.getTrappedString(),
+                err = trapStderrInstance.getTrappedString(),
+                result = result,
+            )
         }
     }
 }
@@ -68,4 +89,10 @@ private class TrapStderr : Closeable {
 data class Trapped(
     val out: String,
     val err: String,
+)
+
+data class TrappedAndResult<R>(
+    val out: String,
+    val err: String,
+    val result: R,
 )

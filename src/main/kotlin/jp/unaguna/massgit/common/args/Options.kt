@@ -9,6 +9,13 @@ interface Options<D : OptionDef> : Map<D, List<Option<D>>> {
     fun of(key: D): List<Option<D>>
 
     /**
+     * Returns the specified option argument instance in original order.
+     *
+     * @return an option instance. If the option is not used, returns empty list.
+     */
+    fun ofOrdered(vararg keys: D): List<Option<D>>
+
+    /**
      * Returns the specified option argument instance.
      *
      * @return only one option instance
@@ -76,9 +83,11 @@ class OptionsImpl<D : OptionDef> private constructor(
 ) : Map<D, List<Option<D>>> by optionMap, Options<D> {
     constructor(optionDefProvider: OptionDefProvider<D>) : this(optionDefProvider, mutableMapOf())
 
+    private var nextOrder: Int = 0
+
     fun addOption(optionDef: D): OptionImpl<D> {
         val options = optionMap.getOrPut(optionDef) { mutableListOf() }
-        val option = OptionImpl(optionDef)
+        val option = OptionImpl(nextOrder++, optionDef)
         options.add(option)
         return option
     }
@@ -99,6 +108,14 @@ class OptionsImpl<D : OptionDef> private constructor(
 
     override fun of(key: D): List<Option<D>> {
         return this[key] ?: emptyList()
+    }
+
+    override fun ofOrdered(vararg keys: D): List<Option<D>> {
+        return keys
+            .asSequence()
+            .flatMap { key -> of(key) }
+            .sortedBy { it.order }
+            .toList()
     }
 
     override fun toString(): String {

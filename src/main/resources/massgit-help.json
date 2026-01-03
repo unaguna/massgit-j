@@ -31,7 +31,18 @@
       "subdesc": "Clone repositories written in repos.json.",
       "usages": [
         "%s [<options>] %s",
-        "%s %s (--version | --help)"
+        "%s %s --help"
+      ],
+      "options": [
+      ]
+    },
+    {
+      "name": "mg-marker",
+      "subdesc": "",
+      "usages": [
+        "%s [<options>] %s list [<repo>...]",
+        "%s [<options>] %s edit <options-for-subcommand>[...] [<repo>...]",
+        "%s %s --help"
       ],
       "options": [
       ]
@@ -40,8 +51,7 @@
       "name": "<git-subcommand>",
       "subdesc": "Execute the subcommand for repositories.",
       "usages": [
-        "%s [<options>] %s [<args>]",
-        "%s %s (--version | --help)"
+        "%s [<options>] %s [<args>]"
       ],
       "options": [
       ]
