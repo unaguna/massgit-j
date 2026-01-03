@@ -23,13 +23,7 @@ class MgMarkerExecutor(
         logger.debug("Repos original: {}", reposOriginal)
         logger.debug("Repos filtered: {}", reposFiltered)
 
-        val modeStr = mainArgs.subOptions.getOrNull(0)
-            ?: throw MgMarkerNullModeException()
-        val mode = try {
-            MgMarkerMode.valueOf(modeStr.uppercase(getDefault()))
-        } catch (e: IllegalArgumentException) {
-            throw IllegalMgMarkerModeException(modeStr, e)
-        }
+        val mode = MgMarkerMode.of(mainArgs.subOptions.getOrNull(0))
 
         val optionsForMode = mainArgs.subOptions.subList(1, mainArgs.subOptions.size)
         val (mgMarkerOptions, targetReposTmp) = MgMarkerOptions.build(optionsForMode)
@@ -147,6 +141,17 @@ class MgMarkerExecutor(
 private enum class MgMarkerMode {
     LIST,
     EDIT,
+    ;
+    companion object {
+        fun of(mode: String?): MgMarkerMode {
+            return when (mode) {
+                "list" -> LIST
+                "edit" -> EDIT
+                null -> throw MgMarkerNullModeException()
+                else -> throw IllegalMgMarkerModeException(mode)
+            }
+        }
+    }
 }
 
 private enum class MgMarkerOptionsDef(
