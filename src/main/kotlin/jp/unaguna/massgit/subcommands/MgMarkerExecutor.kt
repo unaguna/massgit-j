@@ -9,9 +9,9 @@ import jp.unaguna.massgit.common.args.OptionDefProvider
 import jp.unaguna.massgit.common.args.Options
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.ReposLoader
+import jp.unaguna.massgit.configfile.ReposWriter
 import jp.unaguna.massgit.exception.MassgitException
 import org.slf4j.LoggerFactory
-import sun.jvmstat.monitor.MonitoredVmUtil.mainArgs
 import java.util.Locale.getDefault
 
 class MgMarkerExecutor(
@@ -37,7 +37,7 @@ class MgMarkerExecutor(
 
         return when (mode) {
             MgMarkerMode.LIST -> listMarkers(reposFiltered, mgMarkerOptions, targetRepos)
-            MgMarkerMode.EDIT -> editMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos)
+            MgMarkerMode.EDIT -> editMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
         }
     }
 
@@ -70,12 +70,12 @@ class MgMarkerExecutor(
         reposFiltered: List<Repo>,
         mgMarkerOptions: MgMarkerOptions,
         targetRepos: List<String>?,
+        conf: MainConfigurations,
     ): Int {
         if (mgMarkerOptions.isEmpty()) {
             // TODO: 適切な Massgit 例外に置き換え
             error("'mg-marker edit' requires at least one option")
         }
-        println(mgMarkerOptions)
 
         val reposList = if (targetRepos != null) {
             val reposFilteredNameMap = reposFiltered.associateBy { it.dirname }
@@ -99,8 +99,13 @@ class MgMarkerExecutor(
             }
         }
 
-        println(newRepos)
-        TODO("Not implemented yet")
+        runCatching {
+            ReposWriter().overwrite(newRepos, conf)
+        }.onFailure { e ->
+            throw UpdateReposFileFailedException(e)
+        }
+        logger.info("Repos has been updated.")
+        return 0
     }
 
     companion object {
@@ -197,3 +202,6 @@ private class MgMarkerNullModeException : MassgitException("mode must be 'list' 
 
 private class IllegalMgMarkerModeException(mode: String, cause: Throwable? = null) :
     MassgitException("mode must be 'list' or 'edit'; specified mode: '$mode'", cause)
+
+private class UpdateReposFileFailedException(cause: Throwable? = null) :
+    MassgitException("failed to update repo files", cause)
