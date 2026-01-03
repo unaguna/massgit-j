@@ -59,6 +59,19 @@ graalvmNative {
     }
 }
 
+tasks.register<Copy>("copyNativeExe") {
+    val nativeCompile = tasks.named("nativeCompile")
+    dependsOn(nativeCompile)
+
+    from(nativeCompile.get().outputs)
+    include("**/*.exe", "**/*")
+    into(file("$rootDir/graalvm/release"))
+}
+
+tasks.named("nativeCompile") {
+    finalizedBy("copyNativeExe")
+}
+
 detekt {
     buildUponDefaultConfig = true
     autoCorrect = true
