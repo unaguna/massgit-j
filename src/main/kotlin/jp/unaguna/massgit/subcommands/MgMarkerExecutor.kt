@@ -45,22 +45,22 @@ class MgMarkerExecutor(
     private fun listMarkers(
         reposFiltered: List<Repo>,
         mgMarkerOptions: MgMarkerOptions,
-        targetRepos: List<String>?,
+        targetReposByArgs: List<String>?,
     ): Int {
         if (mgMarkerOptions.isNotEmpty()) {
             // TODO: 適切な Massgit 例外に置き換え
             error("'mg-marker list' cannot receive options")
         }
 
-        val reposList = if (targetRepos != null) {
+        val targetRepos = if (targetReposByArgs != null) {
             val reposFilteredNameMap = reposFiltered.associateBy { it.dirname }
             // TODO: フィルタリング前のreposにもない名前が指定されていたらエラーメッセージを出力してexitCodeを非0にする
-            targetRepos.mapNotNull { repoName -> reposFilteredNameMap[repoName] }
+            targetReposByArgs.mapNotNull { repoName -> reposFilteredNameMap[repoName] }
         } else {
             reposFiltered
         }
 
-        for (repo in reposList) {
+        for (repo in targetRepos) {
             println("${repo.dirname} ${repo.markers.joinToString(",")}")
         }
         return 0
@@ -70,7 +70,7 @@ class MgMarkerExecutor(
         reposOriginal: List<Repo>,
         reposFiltered: List<Repo>,
         mgMarkerOptions: MgMarkerOptions,
-        targetRepos: List<String>?,
+        targetReposByArgs: List<String>?,
         conf: MainConfigurations,
     ): Int {
         if (mgMarkerOptions.isEmpty()) {
@@ -78,20 +78,19 @@ class MgMarkerExecutor(
             error("'mg-marker edit' requires at least one option")
         }
 
-        val reposList = if (targetRepos != null) {
-            val reposFilteredNameMap = reposFiltered.associateBy { it.dirname }
-            // TODO: フィルタリング前のreposにもない名前が指定されていたらエラーメッセージを出力してexitCodeを非0にする
-            targetRepos.mapNotNull { repoName -> reposFilteredNameMap[repoName] }
-        } else {
-            reposFiltered
-        }
-        val reposDirNameSet = reposList.map { it.dirname }.toSet()
+        val targetRepos = when {
+            targetReposByArgs == null -> reposFiltered.map { it.dirname }
+            else -> {
+                val reposFilteredNameSet = reposFiltered.map { it.dirname }.toSet()
+                targetReposByArgs.filter { it in reposFilteredNameSet }
+            }
+        }.toSet()
 
         val queries = mgMarkerOptions.getEditQueries()
 
         runCatching {
             val editor = ReposEditor(reposOriginal, conf)
-            editor.editMarkers(queries, reposDirNameSet)
+            editor.editMarkers(queries, targetRepos)
             editor.overwrite()
         }.onFailure { e ->
             throw UpdateReposFileFailedException(e)
