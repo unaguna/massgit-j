@@ -164,6 +164,44 @@ class MainMgMarkerTest {
         assertEquals(0, actualExitCode)
     }
 
+    @Test
+    fun `If 'mg-marker edit --add' twice, the marker added only once, not duplicated`(@TempDir tempDir: Path) {
+        val repos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2")),
+            Repo(dirname = "repo2", markers = listOf("m1")),
+            Repo(dirname = "repo3", markers = listOf("m2")),
+            Repo(dirname = "repo4"),
+        )
+        val reposPath = tempDir.resolve("repos.json").apply {
+            writeText(Json.encodeToString(repos))
+        }
+        val mainArgs = MainArgs.of(listOf("mg-marker", "edit", "--add", "sample"))
+        val conf = MainConfigurations(
+            mainArgs.mainOptions,
+            reposFilePathInj = reposPath,
+        )
+        val processExecutor = PreErrorProcessExecutor()
+        val expectedNewRepos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2", "sample")),
+            Repo(dirname = "repo2", markers = listOf("m1", "sample")),
+            Repo(dirname = "repo3", markers = listOf("m2", "sample")),
+            Repo(dirname = "repo4", markers = listOf("sample")),
+        )
+
+        // run twice
+        repeat(2) {
+            Main().run(
+                mainArgs,
+                confInj = conf,
+                processExecutor = processExecutor,
+            )
+        }
+
+        val actualNewRepos = Repo.loadFromFile(reposPath)
+
+        assertContentEquals(expectedNewRepos, actualNewRepos)
+    }
+
     companion object {
         @JvmStatic
         @Suppress("LongMethod")

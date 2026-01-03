@@ -174,7 +174,9 @@ private sealed class MgMarkerEditQuery {
 
     class Add(val marker: String) : MgMarkerEditQuery() {
         override fun edit(markers: MutableList<String>) {
-            markers.add(marker)
+            if (!markers.contains(marker)) {
+                markers.add(marker)
+            }
         }
     }
 
