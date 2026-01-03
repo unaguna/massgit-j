@@ -12,13 +12,14 @@ import kotlin.io.path.Path
 class MainConfigurations(
     options: MassgitOptions,
     private val prop: Prop = Prop(),
+    private val reposFilePathInj: Path? = null,
 ) {
     val massProjectDir: Path
         get() = System.getProperty("jp.unaguna.massgit.projectDir")?.let { Path(it) }
             ?: Path("").toAbsolutePath()
 
     val reposFilePath: Path
-        get() = massProjectDir.resolve(".massgit").resolve("repos.json")
+        get() = reposFilePathInj ?: massProjectDir.resolve(".massgit").resolve("repos.json")
 
     val knownSubcommands: Set<String> by lazy {
         prop.getSet(Prop.Key.KnownSubcommands) ?: AllSet()

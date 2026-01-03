@@ -15,7 +15,7 @@ class GitProcessingSubcommandExecutor(
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
-        val reposFiltered = ReposLoader(reposInj).load(conf)
+        val (_, reposFiltered) = ReposLoader(reposInj).load(conf)
         logger.debug("Repos filtered: {}", reposFiltered)
 
         return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)

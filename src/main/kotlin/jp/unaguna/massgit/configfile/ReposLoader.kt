@@ -7,7 +7,7 @@ class ReposLoader(
     private val reposInj: List<Repo>? = null,
 ) {
     @Suppress("ThrowsCount")
-    fun load(conf: MainConfigurations): List<Repo> {
+    fun load(conf: MainConfigurations): Loaded {
         val repos = reposInj ?: runCatching {
             Repo.loadFromFile(conf.reposFilePath)
         }.getOrElse { t -> throw LoadingReposFailedException(t) }
@@ -22,8 +22,10 @@ class ReposLoader(
             throw NoRepositoriesTargetedException()
         }
 
-        return reposFiltered
+        return Loaded(repos, reposFiltered)
     }
+
+    data class Loaded(val original: List<Repo>, val filtered: List<Repo>)
 }
 
 private class LoadingReposFailedException(cause: Throwable) :
