@@ -37,12 +37,13 @@ class MgMarkerExecutor(
         val targetRepos = targetReposTmp.ifEmpty { null }
 
         return when (mode) {
-            MgMarkerMode.LIST -> listMarkers(reposFiltered, mgMarkerOptions, targetRepos)
+            MgMarkerMode.LIST -> listMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos)
             MgMarkerMode.EDIT -> editMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
         }
     }
 
     private fun listMarkers(
+        reposOriginal: List<Repo>,
         reposFiltered: List<Repo>,
         mgMarkerOptions: MgMarkerOptions,
         targetReposByArgs: List<String>?,
@@ -52,18 +53,37 @@ class MgMarkerExecutor(
             error("'mg-marker list' cannot receive options")
         }
 
+        val nonExistRepoNameSpecified = mutableListOf<String>()
         val targetRepos = if (targetReposByArgs != null) {
+            val reposExistingName = reposOriginal.asSequence().map { it.dirname }.toSet()
             val reposFilteredNameMap = reposFiltered.associateBy { it.dirname }
-            // TODO: フィルタリング前のreposにもない名前が指定されていたらエラーメッセージを出力してexitCodeを非0にする
-            targetReposByArgs.mapNotNull { repoName -> reposFilteredNameMap[repoName] }
+
+            targetReposByArgs.mapNotNull { repoName ->
+                reposFilteredNameMap[repoName].also { repo ->
+                    if (repo == null && repoName !in reposExistingName) {
+                        nonExistRepoNameSpecified.add(repoName)
+                        logger.trace("Non-exist repository name is specified: {}", repoName)
+                    }
+                }
+            }
         } else {
             reposFiltered
+        }
+
+        if (nonExistRepoNameSpecified.isNotEmpty()) {
+            System.err.println(
+                "warn: this massgit project doesn't contain some specified repository: " +
+                    nonExistRepoNameSpecified.joinToString(",") { "'$it'" }
+            )
         }
 
         for (repo in targetRepos) {
             println("${repo.dirname} ${repo.markers.joinToString(",")}")
         }
-        return 0
+        return when {
+            nonExistRepoNameSpecified.isNotEmpty() -> EXIT_CODE_NON_EXISTS_REPO_NAME_SPECIFIED
+            else -> 0
+        }
     }
 
     private fun editMarkers(
@@ -101,6 +121,7 @@ class MgMarkerExecutor(
 
     companion object {
         private val logger by lazy { LoggerFactory.getLogger(MgMarkerExecutor::class.java) }
+        private const val EXIT_CODE_NON_EXISTS_REPO_NAME_SPECIFIED = 1
     }
 }
 

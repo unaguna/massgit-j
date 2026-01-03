@@ -4,6 +4,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
 import jp.unaguna.massgit.testcommon.process.PreErrorProcessExecutor
 import jp.unaguna.massgit.testcommon.stdio.trapStdoutAndResult
+import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderrResult
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.io.TempDir
@@ -122,6 +123,35 @@ class MainMgMarkerTest {
 
         assertEquals(expectedStdout, actualStdout)
         assertEquals(0, actualExitCode)
+    }
+
+    @Test
+    fun `test 'mg-marker list' with non-exist args`() {
+        val repos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2")),
+            Repo(dirname = "repo2", markers = listOf("m1")),
+            Repo(dirname = "repo3", markers = listOf("m2")),
+            Repo(dirname = "repo4"),
+        )
+        val processExecutor = PreErrorProcessExecutor()
+        val expectedStdout = buildStringByPrintStream {
+            println("repo1 m1,m2")
+        }
+        val expectedStderr = buildStringByPrintStream {
+            println("warn: this massgit project doesn't contain some specified repository: 'repo-dummy','repo-dummy2'")
+        }
+
+        val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
+            Main().run(
+                MainArgs.of(listOf("mg-marker", "list", "repo-dummy", "repo1", "repo-dummy2")),
+                reposInj = repos,
+                processExecutor = processExecutor,
+            )
+        }
+
+        assertEquals(expectedStdout, actualStdout)
+        assertEquals(expectedStderr, actualStderr)
+        assertEquals(1, actualExitCode)
     }
 
     @ParameterizedTest
