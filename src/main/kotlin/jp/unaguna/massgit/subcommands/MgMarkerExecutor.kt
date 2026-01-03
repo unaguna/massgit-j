@@ -62,7 +62,7 @@ class MgMarkerExecutor(
                 reposFilteredNameMap[repoName].also { repo ->
                     if (repo == null && repoName !in reposExistingName) {
                         nonExistRepoNameSpecified.add(repoName)
-                        logger.trace("Non-exist repository name is specified: {}", repoName)
+                        logger.trace("Non-exist repository name is specified to show: {}", repoName)
                     }
                 }
             }
@@ -72,7 +72,7 @@ class MgMarkerExecutor(
 
         if (nonExistRepoNameSpecified.isNotEmpty()) {
             System.err.println(
-                "warn: this massgit project doesn't contain some specified repository: " +
+                "warn: this massgit project doesn't contain some specified repositories: " +
                     nonExistRepoNameSpecified.joinToString(",") { "'$it'" }
             )
         }
@@ -98,13 +98,28 @@ class MgMarkerExecutor(
             error("'mg-marker edit' requires at least one option")
         }
 
+        val nonExistRepoNameSpecified = mutableListOf<String>()
         val targetRepos = when {
             targetReposByArgs == null -> reposFiltered.map { it.dirname }
             else -> {
-                val reposFilteredNameSet = reposFiltered.map { it.dirname }.toSet()
-                targetReposByArgs.filter { it in reposFilteredNameSet }
+                val reposExistingName = reposOriginal.asSequence().map { it.dirname }.toSet()
+                val reposFilteredNameSet = reposFiltered.asSequence().map { it.dirname }.toSet()
+                targetReposByArgs.filter { repoName ->
+                    if (repoName !in reposExistingName) {
+                        nonExistRepoNameSpecified.add(repoName)
+                        logger.trace("Non-exist repository name is specified to edit: {}", repoName)
+                    }
+                    repoName in reposFilteredNameSet
+                }
             }
         }.toSet()
+
+        if (nonExistRepoNameSpecified.isNotEmpty()) {
+            System.err.println(
+                "warn: this massgit project doesn't contain some specified repositories: " +
+                    nonExistRepoNameSpecified.joinToString(",") { "'$it'" }
+            )
+        }
 
         val queries = mgMarkerOptions.getEditQueries()
 
@@ -116,7 +131,10 @@ class MgMarkerExecutor(
             throw UpdateReposFileFailedException(e)
         }
         logger.info("Repos has been updated.")
-        return 0
+        return when {
+            nonExistRepoNameSpecified.isNotEmpty() -> EXIT_CODE_NON_EXISTS_REPO_NAME_SPECIFIED
+            else -> 0
+        }
     }
 
     companion object {

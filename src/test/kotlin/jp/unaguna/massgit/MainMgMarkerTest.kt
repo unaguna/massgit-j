@@ -138,7 +138,9 @@ class MainMgMarkerTest {
             println("repo1 m1,m2")
         }
         val expectedStderr = buildStringByPrintStream {
-            println("warn: this massgit project doesn't contain some specified repository: 'repo-dummy','repo-dummy2'")
+            println(
+                "warn: this massgit project doesn't contain some specified repositories: 'repo-dummy','repo-dummy2'"
+            )
         }
 
         val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
@@ -192,6 +194,52 @@ class MainMgMarkerTest {
         assertContentEquals(expectedNewRepos, actualNewRepos)
         assertEquals(expectedStdout, actualStdout)
         assertEquals(0, actualExitCode)
+    }
+
+    @Test
+    fun `test 'mg-marker edit' with non-exist args`(@TempDir tempDir: Path) {
+        val repos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2")),
+            Repo(dirname = "repo2", markers = listOf("m1")),
+            Repo(dirname = "repo3", markers = listOf("m2")),
+            Repo(dirname = "repo4"),
+        )
+        val reposPath = tempDir.resolve("repos.json").apply {
+            writeText(Json.encodeToString(repos))
+        }
+        val mainArgs = MainArgs.of(listOf("mg-marker", "edit", "--add", "sample", "repo-dummy", "repo1", "repo-dummy2"))
+        val conf = MainConfigurations(
+            mainArgs.mainOptions,
+            reposFilePathInj = reposPath,
+        )
+        val processExecutor = PreErrorProcessExecutor()
+        val expectedStdout = ""
+        val expectedStderr = buildStringByPrintStream {
+            println(
+                "warn: this massgit project doesn't contain some specified repositories: 'repo-dummy','repo-dummy2'"
+            )
+        }
+        val expectedNewRepos = listOf(
+            Repo(dirname = "repo1", markers = listOf("m1", "m2", "sample")),
+            Repo(dirname = "repo2", markers = listOf("m1")),
+            Repo(dirname = "repo3", markers = listOf("m2")),
+            Repo(dirname = "repo4", markers = emptyList()),
+        )
+
+        val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
+            Main().run(
+                mainArgs,
+                confInj = conf,
+                processExecutor = processExecutor,
+            )
+        }
+
+        val actualNewRepos = Repo.loadFromFile(reposPath)
+
+        assertContentEquals(expectedNewRepos, actualNewRepos)
+        assertEquals(expectedStdout, actualStdout)
+        assertEquals(expectedStderr, actualStderr)
+        assertEquals(1, actualExitCode)
     }
 
     @Test
