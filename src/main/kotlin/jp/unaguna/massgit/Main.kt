@@ -23,9 +23,7 @@ class Main {
         processExecutor: ProcessExecutor? = null,
     ): Int {
         if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
-            val helpUrl = this::class.java.getResource("/massgit-help.json")
-                ?: error("massgit-help.json could not be found")
-            val helpDef = HelpDefinition.load(helpUrl)
+            val helpDef = loadHelpDef()
 
             // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
             // TODO: ウィンドウサイズを取得して、引数として使用する
@@ -70,6 +68,12 @@ class Main {
     private fun showVersion() {
         val version = VersionProperties.getVersion()
         println("massgit on java $version")
+    }
+
+    private fun loadHelpDef(): HelpDefinition {
+        val helpUrl = this::class.java.getResource("/massgit-help.json")
+            ?: error("massgit-help.json could not be found")
+        return HelpDefinition.load(helpUrl)
     }
 
     companion object {
