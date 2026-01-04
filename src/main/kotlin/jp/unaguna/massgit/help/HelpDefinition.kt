@@ -17,6 +17,7 @@ data class HelpDefinition(
     val name: String,
     val description: String? = null,
     val subdesc: String? = null,
+    val hideInList: Boolean = false,
     val sections: List<Section> = emptyList(),
     val subcommands: List<HelpDefinition>? = null,
 ) {
@@ -188,7 +189,7 @@ data class HelpDefinition(
             ?: defaultOptionWidth(out.windowWidth)
         out.println(section.header)
         out.withIndent(indentSize) {
-            subcommands?.forEach { subcommand ->
+            subcommands?.asSequence()?.filter { !it.hideInList }?.forEach { subcommand ->
                 out.print(subcommand.name)
                 if (subcommand.name.length > optionWidth) {
                     out.println()

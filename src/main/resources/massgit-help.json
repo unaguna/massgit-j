@@ -74,7 +74,7 @@
     },
     {
       "name": "mg-marker",
-      "subdesc": "",
+      "subdesc": "Show or edit markers of each repositories.",
       "sections": [
         {
           "name": "usage",
@@ -102,6 +102,7 @@
     {
       "name": "mg-marker list",
       "subdesc": "",
+      "hideInList": true,
       "sections": [
         {
           "name": "usage",
@@ -126,6 +127,7 @@
     {
       "name": "mg-marker edit",
       "subdesc": "",
+      "hideInList": true,
       "sections": [
         {
           "name": "usage",
