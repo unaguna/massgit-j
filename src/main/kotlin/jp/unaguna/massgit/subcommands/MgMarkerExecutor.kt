@@ -21,7 +21,7 @@ class MgMarkerExecutor(
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
         if (mainArgs.subOptions.contains("--help")) {
-            printHelp()
+            printHelp(mainArgs.subOptions)
             return 0
         }
 
@@ -41,9 +41,16 @@ class MgMarkerExecutor(
         }
     }
 
-    private fun printHelp() {
+    private fun printHelp(subOptions: List<String>) {
         val helpDef = HelpDefinition.load()
-        helpDef.printSubcommand(System.out, "massgit", subcommand = "mg-marker")
+
+        when (val firstOption = subOptions.first()) {
+            "--help" -> helpDef.printSubcommand(System.out, "massgit", subcommand = "mg-marker")
+            else -> when (MgMarkerMode.of(firstOption)) {
+                MgMarkerMode.LIST -> helpDef.printSubcommand(System.out, "massgit", "mg-marker list")
+                MgMarkerMode.EDIT -> helpDef.printSubcommand(System.out, "massgit", "mg-marker edit")
+            }
+        }
     }
 
     private fun listMarkers(

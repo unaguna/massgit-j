@@ -48,6 +48,38 @@
       ]
     },
     {
+      "name": "mg-marker list",
+      "subdesc": "",
+      "usages": [
+        "%s [<options>] mg-marker list [<repo>...]",
+        "%s mg-marker list --help"
+      ],
+      "options": [
+      ]
+    },
+    {
+      "name": "mg-marker edit",
+      "subdesc": "",
+      "usages": [
+        "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]",
+        "%s mg-marker edit --help"
+      ],
+      "options": [
+        {
+          "names": ["--add", "-a"],
+          "type": "String",
+          "dest": "marker",
+          "description": "Add specified marker into target repositories."
+        },
+        {
+          "names": ["--remove", "-r"],
+          "type": "String",
+          "dest": "marker",
+          "description": "Remove specified marker from target repositories."
+        }
+      ]
+    },
+    {
       "name": "<git-subcommand>",
       "subdesc": "Execute the subcommand for repositories.",
       "usages": [

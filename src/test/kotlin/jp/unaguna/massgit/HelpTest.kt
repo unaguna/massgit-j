@@ -1,5 +1,6 @@
 package jp.unaguna.massgit
 
+import jp.unaguna.massgit.testcommon.assertion.assertNotContains
 import jp.unaguna.massgit.testcommon.process.PreErrorProcessExecutor
 import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderrResult
 import org.junit.jupiter.api.io.TempDir
@@ -76,6 +77,56 @@ class HelpTest {
 
         assertContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
         assertContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
+        assertEquals(expectedStderr, actualStderr)
+        assertEquals(expectedExitCode, actualExitCode)
+    }
+
+    @Test
+    fun `test mg-marker list --help`(@TempDir tempDir: Path) {
+        val reposPath = tempDir.resolve("repos.json")
+        val mainArgs = MainArgs.of(listOf("mg-marker", "list", "--help"))
+        val conf = MainConfigurations(mainArgs.mainOptions, reposFilePathInj = reposPath)
+        val processExecutor = PreErrorProcessExecutor()
+
+        val expectedStderr = ""
+        val expectedExitCode = 0
+
+        val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
+            Main().run(
+                mainArgs,
+                conf,
+                processExecutor = processExecutor,
+            )
+        }
+
+        assertContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
+        assertNotContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
+        assertEquals(expectedStderr, actualStderr)
+        assertEquals(expectedExitCode, actualExitCode)
+    }
+
+    @Test
+    fun `test mg-marker edit --help`(@TempDir tempDir: Path) {
+        val reposPath = tempDir.resolve("repos.json")
+        val mainArgs = MainArgs.of(listOf("mg-marker", "edit", "--help"))
+        val conf = MainConfigurations(mainArgs.mainOptions, reposFilePathInj = reposPath)
+        val processExecutor = PreErrorProcessExecutor()
+
+        val expectedStderr = ""
+        val expectedExitCode = 0
+
+        val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
+            Main().run(
+                mainArgs,
+                conf,
+                processExecutor = processExecutor,
+            )
+        }
+
+        assertNotContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
+        assertContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
+        assertContains(actualStdout, "--add")
+        assertContains(actualStdout, "--remove")
         assertEquals(expectedStderr, actualStderr)
         assertEquals(expectedExitCode, actualExitCode)
     }
