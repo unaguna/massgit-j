@@ -59,20 +59,21 @@ data class HelpDefinition(
                     out,
                     section,
                     optionWidth = optionWidth,
-                    indentSize = indentSize
+                    indentSize = indentSize,
                 )
                 SectionType.Regular -> printSection(
                     out,
                     section,
                     cmd = cmd,
                     optionWidth = optionWidth,
-                    indentSize = indentSize
+                    indentSize = indentSize,
                 )
                 SectionType.RootOptions -> root.printOptions(
                     out,
                     section.targetOptions,
                     optionWidth = optionWidth,
-                    indentSize = indentSize
+                    indentSize = indentSize,
+                    header = section.header,
                 )
             }
         }
@@ -140,9 +141,10 @@ data class HelpDefinition(
         sectionName: String,
         optionWidth: Int? = null,
         indentSize: Int = 4,
+        header: String? = null,
     ) {
         val section = sections.find { it.name == sectionName }!!
-        printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize)
+        printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize, header = header)
     }
 
     fun printOptions(
@@ -150,12 +152,13 @@ data class HelpDefinition(
         section: Section,
         optionWidth: Int? = null,
         indentSize: Int = 4,
+        header: String? = null,
     ) {
         require(section.type == SectionType.Options)
 
         val optionWidth = optionWidth
             ?: defaultOptionWidth(out.windowWidth)
-        out.println(section.header)
+        out.println(header ?: section.header)
         out.withIndent(indentSize) {
             section.options.forEach { option ->
                 val optionStr = option.toString()

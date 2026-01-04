@@ -58,7 +58,7 @@
           "type": "Regular",
           "items": [
             {
-              "left": "%s [<options>] mg-clone"
+              "left": "%s [<root-options>] mg-clone"
             },
             {
               "left": "%s mg-clone --help"
@@ -67,7 +67,7 @@
         },
         {
           "name": "root-options",
-          "header": "Options",
+          "header": "Root Options:",
           "type": "RootOptions"
         }
       ]
@@ -82,10 +82,10 @@
           "type": "Regular",
           "items": [
             {
-              "left": "%s [<options>] mg-marker list [<repo>...]"
+              "left": "%s [<root-options>] mg-marker list [<repo>...]"
             },
             {
-              "left": "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]"
+              "left": "%s [<root-options>] mg-marker edit <options>[...] [<repo>...]"
             },
             {
               "left": "%s mg-marker --help"
@@ -94,7 +94,7 @@
         },
         {
           "name": "root-options",
-          "header": "Options",
+          "header": "Root Options:",
           "type": "RootOptions"
         }
       ]
@@ -109,7 +109,7 @@
           "type": "Regular",
           "items": [
             {
-              "left": "%s [<options>] mg-marker list [<repo>...]"
+              "left": "%s [<root-options>] mg-marker list [<repo>...]"
             },
             {
               "left": "%s mg-marker list --help"
@@ -118,7 +118,7 @@
         },
         {
           "name": "root-options",
-          "header": "Options",
+          "header": "Root Options:",
           "type": "RootOptions"
         }
       ]
@@ -133,7 +133,7 @@
           "type": "Regular",
           "items": [
             {
-              "left": "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]"
+              "left": "%s [<root-options>] mg-marker edit <options>[...] [<repo>...]"
             },
             {
               "left": "%s mg-marker edit --help"
@@ -142,7 +142,7 @@
         },
         {
           "name": "root-options",
-          "header": "Options",
+          "header": "Root Options:",
           "type": "RootOptions"
         },
         {
@@ -179,6 +179,11 @@
               "left":  "%s [<options>] <git-subcommand> [<args>]"
             }
           ]
+        },
+        {
+          "name": "root-options",
+          "header": "Options:",
+          "type": "RootOptions"
         }
       ]
     }
