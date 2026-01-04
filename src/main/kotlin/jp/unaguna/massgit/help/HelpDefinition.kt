@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.io.PrintStream
 import java.net.URL
 
+@Suppress("LongParameterList", "TooManyFunctions")
 @Serializable
 data class HelpDefinition(
     val version: Int? = null,
@@ -19,12 +20,15 @@ data class HelpDefinition(
     val sections: List<Section> = emptyList(),
     val subcommands: List<HelpDefinition>? = null,
 ) {
+    fun subcommandIsExist(subcommand: String): Boolean {
+        return getSubcommandOrNull(subcommand) != null
+    }
 
-    fun getSubcommandOrNull(subcommand: String): HelpDefinition? {
+    private fun getSubcommandOrNull(subcommand: String): HelpDefinition? {
         return this.subcommands?.find { it.name == subcommand }
     }
 
-    fun getSubcommand(subcommand: String): HelpDefinition {
+    private fun getSubcommand(subcommand: String): HelpDefinition {
         return this.getSubcommandOrNull(subcommand)
             ?: error("Subcommand $subcommand not found")
     }
@@ -68,7 +72,6 @@ data class HelpDefinition(
         }
     }
 
-    @Suppress("LongParameterList")
     fun printSection(
         out: PrintStream,
         sectionName: String,
@@ -182,6 +185,18 @@ data class HelpDefinition(
             }
         }
         out.println()
+    }
+
+    fun printSubcommand(
+        out: PrintStream,
+        cmd: String = name,
+        subcommand: String,
+        windowWidth: Int = 120,
+        optionWidth: Int = defaultOptionWidth(windowWidth),
+        indentSize: Int = 4,
+    ) {
+        getSubcommand(subcommand)
+            .print(out, cmd, windowWidth = windowWidth, optionWidth = optionWidth, indentSize = indentSize)
     }
 
     companion object {

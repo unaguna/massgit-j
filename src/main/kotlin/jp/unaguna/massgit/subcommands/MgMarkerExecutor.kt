@@ -45,10 +45,10 @@ class MgMarkerExecutor(
         val helpDef = HelpDefinition.load()
 
         when (val firstOption = subOptions.first()) {
-            "--help" -> helpDef.getSubcommand("mg-marker").print(System.out, "massgit")
+            "--help" -> helpDef.printSubcommand(System.out, "massgit", "mg-marker")
             else -> when (MgMarkerMode.of(firstOption)) {
-                MgMarkerMode.LIST -> helpDef.getSubcommand("mg-marker list").print(System.out, "massgit")
-                MgMarkerMode.EDIT -> helpDef.getSubcommand("mg-marker edit").print(System.out, "massgit")
+                MgMarkerMode.LIST -> helpDef.printSubcommand(System.out, "massgit", "mg-marker list")
+                MgMarkerMode.EDIT -> helpDef.printSubcommand(System.out, "massgit", "mg-marker edit")
             }
         }
     }

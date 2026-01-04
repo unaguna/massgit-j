@@ -35,10 +35,10 @@ class GitProcessingSubcommandExecutor(
 
     private fun printHelpIfExists(): Boolean {
         val helpDef = HelpDefinition.load()
-        return when (val helpDefSub = helpDef.getSubcommandOrNull(subcommand.name)) {
-            null -> false
-            else -> {
-                helpDefSub.print(System.out, "massgit")
+        return when (helpDef.subcommandIsExist(subcommand.name)) {
+            false -> false
+            true -> {
+                helpDef.printSubcommand(System.out, "massgit", subcommand = subcommand.name)
                 true
             }
         }
