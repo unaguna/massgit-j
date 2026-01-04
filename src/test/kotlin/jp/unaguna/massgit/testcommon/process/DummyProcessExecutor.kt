@@ -16,6 +16,7 @@ class DummyProcessExecutor(
     val stdoutStock = if (stdout != null) ArrayDeque(stdout) else null
     var executeCount = 0
         private set
+    private val commandHistory: MutableList<HistoryLine> = mutableListOf()
 
     override fun execute(
         command: List<String>,
@@ -24,8 +25,21 @@ class DummyProcessExecutor(
         val nextExitCode = exitCodesStock.removeFirstOrNull() ?: 0
         val nextStdout = stdoutStock?.removeFirstOrNull()
         executeCount += 1
+        commandHistory.add(HistoryLine(command, workingDir))
 
         return DummyProcess(nextExitCode, stdout = nextStdout)
+    }
+
+    fun getHistory(index: Int) = commandHistory[index]
+
+    fun getHistories() = commandHistory.toList()
+
+    data class HistoryLine(val command: List<String>, val workDir: Path?) {
+        val dirname: String?
+            get() {
+                val indexOfC = command.indexOf("-C")
+                return if (indexOfC == -1) null else command[indexOfC + 1]
+            }
     }
 
     class DummyProcess(

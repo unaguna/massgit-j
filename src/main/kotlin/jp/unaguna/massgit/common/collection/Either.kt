@@ -21,6 +21,13 @@ class Either<A, B> private constructor(val isLeft: Boolean, private val left: A?
         return isRight && condition(getRight())
     }
 
+    override fun toString(): String {
+        return when {
+            isLeft -> "Either.left($left)"
+            else -> "Either.right($right)"
+        }
+    }
+
     companion object {
         fun <A, B> left(left: A) = Either(true, left, null as B?)
         fun <A, B> right(right: B) = Either(false, null as A?, right)

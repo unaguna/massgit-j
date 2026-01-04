@@ -1,37 +1,71 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
-import jp.unaguna.massgit.exception.LoadingReposFailedException
+import jp.unaguna.massgit.configfile.SystemProp
 import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.help.HelpDefinition
+import jp.unaguna.massgit.logging.LoggingSetUp
+import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
 class Main {
+    private val logger = LoggerFactory.getLogger(Main::class.java)
+
+    init {
+        logger.info("Start massgit.")
+    }
+
+    @Suppress("MagicNumber", "ReturnCount", "ThrowsCount")
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
-        gitProcessManagerFactoryInj: GitProcessManagerFactory? = null
+        processExecutor: ProcessExecutor? = null,
     ): Int {
+        if (mainArgs.mainOptions.isHelp()) {
+            val helpDef = HelpDefinition.load()
+
+            // TODO: ウィンドウサイズを取得して、引数として使用する
+            helpDef.print(System.out, "massgit")
+
+            return 0
+        }
         if (mainArgs.mainOptions.isVersion()) {
             showVersion()
             return 0
         }
 
-        val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
+        // subCommand is required.
+        // If not specified, print usage.
+        if (mainArgs.subCommand == null) {
+            val helpDef = HelpDefinition.load()
 
-        val gitProcessManagerFactory = gitProcessManagerFactoryInj
-            ?: GitProcessManagerFactoryImpl(mainArgs, conf)
-        val gitProcessManager = gitProcessManagerFactory.create()
-
-        val repos = reposInj ?: runCatching {
-            Repo.loadFromFile(conf.reposFilePath)
-        }.getOrElse { t -> throw LoadingReposFailedException(t) }
-        val reposFiltered = when (val markerConditions = conf.markerConditions) {
-            null -> repos
-            else -> repos.filter { markerConditions.satisfies(it.markers) }
+            // TODO: ウィンドウサイズを取得して、引数として使用する
+            helpDef.printSection(System.out, "usage", cmd = "massgit")
+            return 127
         }
 
-        return gitProcessManager.run(reposFiltered, massgitBaseDir = conf.massProjectDir)
+        val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
+
+        // check whether the subcommand is accepted
+        when (conf.subcommandAcceptation(mainArgs.subCommand)) {
+            MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
+                throw ProhibitedSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
+                throw UnknownSubcommandException(mainArgs.subCommand)
+            }
+            MainConfigurations.SubcommandAcceptation.OK -> Unit
+        }
+
+        val subcommandExecutor = mainArgs.subCommand.executor(
+            mainArgs,
+            conf,
+            processExecutor,
+            reposInj,
+        )
+
+        return subcommandExecutor.execute(conf, mainArgs)
     }
 
     private fun showVersion() {
@@ -43,8 +77,13 @@ class Main {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
+            SystemProp.initialize()
+            LoggingSetUp.setUpLogging()
+
+            val mainInstance = Main()
+
             val exitCode = runCatching {
-                Main().run(mainArgs = MainArgs.of(args))
+                mainInstance.run(mainArgs = MainArgs.of(args))
             }.onFailure { e ->
                 val message = if (e is MassgitException) {
                     e.consoleMessage
@@ -54,8 +93,8 @@ class Main {
                     "some error occurred"
                 }
 
-                System.err.println(message)
-                // TODO: 例外をログ出力
+                System.err.println("error: $message")
+                mainInstance.logger.warn(message, e)
             }.getOrDefault(127)
 
             exitProcess(exitCode)
@@ -63,38 +102,8 @@ class Main {
     }
 }
 
-private class GitProcessManagerFactoryImpl(
-    private val mainArgs: MainArgs,
-    private val conf: MainConfigurations,
-) : GitProcessManagerFactory {
-    @Suppress("ThrowsCount")
-    override fun create(): GitProcessManager {
-        requireNotNull(mainArgs.subCommand) {
-            throw UnknownSubcommandException("")
-        }
+private class ProhibitedSubcommandException(subcommand: Subcommand) :
+    MassgitException("subcommand '${subcommand.name}' is prohibited")
 
-        if (mainArgs.subCommand == "mg-clone") {
-            return GitProcessManager.cloneAll(
-                repSuffix = conf.repSuffix,
-            )
-        } else {
-            when (conf.subcommandAcceptation(mainArgs.subCommand)) {
-                MainConfigurations.SubcommandAcceptation.PROHIBITED -> {
-                    throw ProhibitedSubcommandException(mainArgs.subCommand)
-                }
-                MainConfigurations.SubcommandAcceptation.UNKNOWN -> {
-                    throw UnknownSubcommandException(mainArgs.subCommand)
-                }
-                MainConfigurations.SubcommandAcceptation.OK -> Unit
-            }
-
-            return GitProcessManager.regular(mainArgs)
-        }
-    }
-}
-
-private class ProhibitedSubcommandException(subcommand: String) :
-    MassgitException("subcommand '$subcommand' is prohibited")
-
-private class UnknownSubcommandException(subcommand: String) :
-    MassgitException("unknown subcommand '$subcommand'")
+private class UnknownSubcommandException(subcommand: Subcommand) :
+    MassgitException("unknown subcommand '${subcommand.name}'")

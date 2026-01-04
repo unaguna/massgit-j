@@ -1,6 +1,8 @@
 package jp.unaguna.massgit.common.args
 
 interface Option<D : OptionDef> {
+    /** the order in original arguments list */
+    val order: Int
     val def: D
     val args: List<String>
 
@@ -9,7 +11,7 @@ interface Option<D : OptionDef> {
     }
 }
 
-class OptionImpl<D : OptionDef>(override val def: D) : Option<D> {
+class OptionImpl<D : OptionDef>(override val order: Int, override val def: D) : Option<D> {
     override val args = mutableListOf<String>()
 
     fun push(arg: String) {
@@ -23,5 +25,12 @@ class OptionImpl<D : OptionDef>(override val def: D) : Option<D> {
      */
     fun argsNumberIsSufficient(): Boolean {
         return def.sufficient(args.size)
+    }
+
+    override fun toString(): String {
+        return when (args.size) {
+            0 -> "Option(${def.representativeName})"
+            else -> "Option(${def.representativeName}, ${args.joinToString(" ")})"
+        }
     }
 }

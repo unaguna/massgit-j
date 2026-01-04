@@ -1,10 +1,11 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.testcommon.assertion.assertNotContains
 import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
 import jp.unaguna.massgit.testcommon.io.createTempTextFile
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
-import jp.unaguna.massgit.testcommon.stdio.trapStdout
+import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderr
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -38,13 +39,15 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = exitCodesStr.split(":").map { it.toInt() }
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
         }
         val processExecutor = DummyProcessExecutor(exitCodes)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
@@ -58,6 +61,7 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -78,15 +82,18 @@ class GitProcessManagerGrepTest {
         }
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
-        val actualStdout = trapStdout {
+        val (actualStdout, actualStderr) = trapStdoutStderr {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
+        // not contain summary in stderr
+        assertNotContains(actualStderr, "Total")
         assertEquals(repos.size, processExecutor.executeCount)
     }
 
@@ -95,6 +102,7 @@ class GitProcessManagerGrepTest {
         @TempDir tempDir: Path,
     ) {
         val mainArgs = MainArgs.of(listOf("grep", "--name-only", "word"))
+        val conf = MainConfigurations(mainArgs.mainOptions)
         val exitCodes = listOf(0, 0, 0)
         val repos = List(exitCodes.size) { index ->
             Repo(dirname = "repo$index")
@@ -115,15 +123,18 @@ class GitProcessManagerGrepTest {
         }
 
         val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
-        val processManager = GitProcessManager.regular(
+        val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
+            conf,
             processExecutor,
         )
 
-        val actualStdout = trapStdout {
+        val (actualStdout, actualStderr) = trapStdoutStderr {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
+        // not contain summary in stderr
+        assertNotContains(actualStderr, "Total")
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }

@@ -13,33 +13,23 @@ import jp.unaguna.massgit.exitcode.RegularExitCodeDecider
 import jp.unaguna.massgit.printfilter.DoNothingFilter
 import jp.unaguna.massgit.printfilter.LineHeadFilter
 import jp.unaguna.massgit.printmanager.PrintManagerThrough
+import jp.unaguna.massgit.summaryprinter.EmptySummaryPrinter
 import jp.unaguna.massgit.summaryprinter.RegularSummaryPrinter
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 interface GitProcessManager {
     fun run(repos: List<Repo>, massgitBaseDir: Path? = null): Int
-
-    companion object {
-        fun regular(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
-        ): GitProcessManager {
-            return GitProcessRegularManager.construct(mainArgs, processExecutor)
-        }
-
-        fun cloneAll(repSuffix: String?): GitProcessManager {
-            return CloneProcessManager(repSuffix)
-        }
-    }
 }
 
 abstract class GitProcessManagerBase(
     private val processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManager {
+    private val logger = LoggerFactory.getLogger(GitProcessManagerBase::class.java)
     protected abstract val cmdTemplate: ProcessArgs
-    protected open val summaryPrinter: SummaryPrinter? = null
+    protected open val summaryPrinter: SummaryPrinter = EmptySummaryPrinter()
     protected abstract val exitCodeDecider: ExitCodeDecider
     protected abstract fun createPrintManager(repo: Repo): PrintManager
 
@@ -61,8 +51,10 @@ abstract class GitProcessManagerBase(
         val executor = Executors.newFixedThreadPool(1)
 
         val executionFutures = repos.submitForEach(executor) { repo ->
+            logger.trace("Start thread for {}", repo.dirname)
+
             val errorFilter = errorFilter(repo)
-            runCatching {
+            val threadResult = runCatching {
                 val process = runCatching {
                     processExecutor.execute(
                         cmdTemplate.render(repo),
@@ -92,8 +84,11 @@ abstract class GitProcessManagerBase(
                 val message = errorFilter.mapLine(baseMsg)
 
                 System.err.println(message)
-                // TODO: 例外をログ出力
+                logger.error(message, e)
             }.getEither()
+
+            logger.trace("End thread for {}; result={}", repo.dirname, threadResult)
+            threadResult
         }
 
         executor.shutdown()
@@ -102,7 +97,7 @@ abstract class GitProcessManagerBase(
         }
 
         val executionResults = executionFutures.map { future -> future.get() }
-        summaryPrinter?.printSummary(executionResults)
+        summaryPrinter.printSummary(executionResults)
         return exitCodeDecider.decideExitCode(executionResults)
     }
 
@@ -119,7 +114,7 @@ abstract class GitProcessManagerBase(
     }
 }
 
-open class GitProcessRegularManager protected constructor(
+open class GitProcessRegularManager(
     protected val mainArgs: MainArgs,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManagerBase(processExecutor) {
@@ -129,31 +124,18 @@ open class GitProcessRegularManager protected constructor(
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
-        append(mainArgs.subCommand)
+        append(mainArgs.subCommand.name)
         append(mainArgs.subOptions)
     }
 
     open val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_DEFAULT
+    override val summaryPrinter: SummaryPrinter = RegularSummaryPrinter()
     override val exitCodeDecider: ExitCodeDecider = RegularExitCodeDecider()
 
     override fun createPrintManager(repo: Repo): PrintManager {
         return PrintManagerThrough(
             LineHeadFilter("${repo.dirname}$repSuffix")
         )
-    }
-
-    companion object {
-        fun construct(
-            mainArgs: MainArgs,
-            processExecutor: ProcessExecutor = ProcessExecutor.default(),
-        ): GitProcessRegularManager {
-            return when (mainArgs.subCommand) {
-                "diff" -> GitProcessDiffManager(mainArgs, processExecutor)
-                "grep" -> GitProcessGrepManager(mainArgs, processExecutor)
-                "ls-files" -> GitProcessFilepathManager(mainArgs, processExecutor)
-                else -> GitProcessRegularManager(mainArgs, processExecutor)
-            }
-        }
     }
 }
 
@@ -165,6 +147,7 @@ class GitProcessDiffManager(
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
     }
+    override val summaryPrinter = EmptySummaryPrinter()
 
     override fun createPrintManager(repo: Repo): PrintManager = when {
         mainArgs.subOptions.containsAny(
@@ -188,6 +171,7 @@ class GitProcessFilepathManager(
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+    override val summaryPrinter = EmptySummaryPrinter()
 }
 
 class GitProcessGrepManager(
@@ -195,6 +179,7 @@ class GitProcessGrepManager(
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
+    override val summaryPrinter = EmptySummaryPrinter()
     override val exitCodeDecider: ExitCodeDecider = GrepExitCodeDecider()
 }
 

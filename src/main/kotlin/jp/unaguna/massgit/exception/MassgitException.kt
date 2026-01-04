@@ -24,6 +24,3 @@ class GitProcessCanceledException(command: List<String>?, cause: Throwable?) :
 
     override val consoleMessage: String = chainMessage("canceled to run the git process", cause)
 }
-
-class LoadingReposFailedException(cause: Throwable) :
-    MassgitException("failed to load repos file", cause)

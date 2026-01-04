@@ -10,7 +10,15 @@ import kotlin.test.assertEquals
 class MainArgsTest {
     @ParameterizedTest
     @MethodSource("paramsOfTestSubCommand")
-    fun testSubCommand(argsStr: List<String>, expectedSubCommand: String?) {
+    fun testSubCommand(argsStr: List<String>, expectedSubCommand: Subcommand?) {
+        val args = MainArgs.of(argsStr)
+
+        assertEquals(expectedSubCommand, args.subCommand)
+    }
+
+    @ParameterizedTest
+    @MethodSource("paramsOfTestSubCommandObject")
+    fun testSubCommandObject(argsStr: List<String>, expectedSubCommand: Subcommand?) {
         val args = MainArgs.of(argsStr)
 
         assertEquals(expectedSubCommand, args.subCommand)
@@ -31,12 +39,25 @@ class MainArgsTest {
             arguments(listOf("--rep-suffix", "@"), null),
             arguments(listOf("--rep-suffix=@"), null),
             arguments(listOf("--version"), null),
-            arguments(listOf("grep"), "grep"),
-            arguments(listOf("--rep-suffix", "@", "grep"), "grep"),
-            arguments(listOf("--rep-suffix=@", "grep"), "grep"),
-            arguments(listOf("grep", "--dummy"), "grep"),
-            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), "grep"),
-            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), "grep"),
+            arguments(listOf("grep"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix", "@", "grep"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix=@", "grep"), Subcommand.of("grep")),
+            arguments(listOf("grep", "--dummy"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix", "@", "grep", "--dummy"), Subcommand.of("grep")),
+            arguments(listOf("--rep-suffix=@", "grep", "--dummy"), Subcommand.of("grep")),
+        )
+
+        @JvmStatic
+        fun paramsOfTestSubCommandObject(): Stream<Arguments> = Stream.of(
+            arguments(listOf("grep"), Subcommand.Grep),
+            arguments(listOf("diff"), Subcommand.Diff),
+            arguments(listOf("ls-files"), Subcommand.LsFiles),
+            arguments(listOf("fetch"), Subcommand.OtherGitSubcommand("fetch")),
+            arguments(listOf("pull"), Subcommand.OtherGitSubcommand("pull")),
+            arguments(listOf("push"), Subcommand.OtherGitSubcommand("push")),
+            arguments(listOf("switch"), Subcommand.OtherGitSubcommand("switch")),
+            arguments(listOf("reset"), Subcommand.OtherGitSubcommand("reset")),
+            arguments(listOf("checkout"), Subcommand.OtherGitSubcommand("checkout")),
         )
 
         @JvmStatic

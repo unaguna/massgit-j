@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "jp.unaguna"
-version = "0.5.0"
+version = "0.6.0"
 
 sourceSets {
     main {
@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
@@ -53,7 +54,22 @@ graalvmNative {
         buildArgs.add("--initialize-at-build-time")
         buildArgs.add("-O3")
         resources.includedPatterns.add("massgit-.+\\.properties")
+        resources.includedPatterns.add("massgit-.+\\.json")
+        resources.includedPatterns.add("logback.xml")
     }
+}
+
+tasks.register<Copy>("copyNativeExe") {
+    val nativeCompile = tasks.named("nativeCompile")
+    dependsOn(nativeCompile)
+
+    from(nativeCompile.get().outputs)
+    include("**/*.exe", "**/*")
+    into(file("$rootDir/graalvm/release"))
+}
+
+tasks.named("nativeCompile") {
+    finalizedBy("copyNativeExe")
 }
 
 detekt {

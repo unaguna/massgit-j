@@ -8,7 +8,7 @@ class BooleanTreeImpl private constructor(expression: String) : BooleanTree {
     companion object {
         fun decode(expression: String): BooleanTree = BooleanTreeImpl(expression)
 
-        fun decodeToNode(exception: String): BooleanTreeNode {
+        fun decodeToNode(exception: String): BooleanTreeNode = runCatching {
             val root = BooleanRootNode()
 
             // 現在の優先度。計算優先度を変更するかっこのネストの数
@@ -38,8 +38,8 @@ class BooleanTreeImpl private constructor(expression: String) : BooleanTree {
             check(result.isComplete()) {
                 throw IncompleteTreeException("failed to decode $exception")
             }
-            return result
-        }
+            result
+        }.getOrElse { e -> throw DecodeTreeFailedException(e) }
 
         private fun splitTokens(expression: String): List<String> {
             val tokens = mutableListOf<String>()
