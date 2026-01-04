@@ -34,12 +34,7 @@ data class HelpDefinition(
             out.println()
         }
 
-        out.println("Usage:")
-        out.withIndent(indentSize) {
-            usages.forEach { usage ->
-                out.println(usage.format(cmd))
-            }
-        }
+        printUsage(out, cmd = cmd, indentSize = indentSize)
         out.println()
 
         out.println("Options:")
@@ -79,6 +74,33 @@ data class HelpDefinition(
         }
     }
 
+    fun printUsage(
+        out: PrintStream,
+        cmd: String = name,
+        windowWidth: Int = 120,
+        indentSize: Int = 4,
+    ) {
+        printUsage(
+            IndentPrintStreamWrapper(out, windowWidth = windowWidth),
+            cmd,
+            indentSize = indentSize,
+        )
+    }
+
+    fun printUsage(
+        out: IndentPrintStreamWrapper,
+        cmd: String = name,
+        subcommand: String? = null,
+        indentSize: Int = 4,
+    ) {
+        out.println("Usage:")
+        out.withIndent(indentSize) {
+            usages.forEach { usage ->
+                out.println(usage.format(cmd, subcommand))
+            }
+        }
+    }
+
     @Suppress("LongParameterList")
     fun printSubcommand(
         out: PrintStream,
@@ -102,12 +124,7 @@ data class HelpDefinition(
             out.println()
         }
 
-        out.println("Usage:")
-        out.withIndent(indentSize) {
-            subcommandHelpDef.usages.forEach { usage ->
-                out.println(usage.format(cmd, subcommand))
-            }
-        }
+        subcommandHelpDef.printUsage(out, cmd = cmd, subcommand = subcommand, indentSize = indentSize)
         out.println()
 
         out.println("Options:")

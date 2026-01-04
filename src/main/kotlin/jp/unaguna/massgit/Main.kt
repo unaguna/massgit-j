@@ -15,7 +15,7 @@ class Main {
         logger.info("Start massgit.")
     }
 
-    @Suppress("ReturnCount", "ThrowsCount")
+    @Suppress("MagicNumber", "ReturnCount", "ThrowsCount")
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
@@ -25,7 +25,6 @@ class Main {
         if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
             val helpDef = loadHelpDef()
 
-            // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
             // TODO: ウィンドウサイズを取得して、引数として使用する
             when (mainArgs.subCommand) {
                 null -> helpDef.print(System.out, "massgit")
@@ -39,8 +38,16 @@ class Main {
             showVersion()
             return 0
         }
-        // TODO: サブコマンドが無い場合、usage を表示して終了
-        requireNotNull(mainArgs.subCommand)
+
+        // subCommand is required.
+        // If not specified, print usage.
+        if (mainArgs.subCommand == null) {
+            val helpDef = loadHelpDef()
+
+            // TODO: ウィンドウサイズを取得して、引数として使用する
+            helpDef.printUsage(System.out, "massgit")
+            return 127
+        }
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
