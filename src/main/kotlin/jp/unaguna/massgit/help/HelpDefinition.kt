@@ -3,11 +3,16 @@ package jp.unaguna.massgit.help
 import jp.unaguna.massgit.common.textio.IndentPrintStreamWrapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.PrintStream
 import java.net.URL
 
 @Serializable
 data class HelpDefinition(
+    val version: Int? = null,
     val name: String,
     val description: String? = null,
     val subdesc: String? = null,
@@ -170,12 +175,20 @@ data class HelpDefinition(
     }
 
     companion object {
+        private const val VERSION = 1
+
         fun load(url: URL? = null): HelpDefinition {
             val helpUrl = url
                 ?: this::class.java.getResource("/massgit-help.json")
                 ?: error("massgit-help.json could not be found")
 
-            return Json.decodeFromString<HelpDefinition>(helpUrl.readText(Charsets.UTF_8))
+            val helpJson = Json.parseToJsonElement(helpUrl.readText(Charsets.UTF_8)) as JsonObject
+            val actualVersion = helpJson["version"]?.jsonPrimitive
+            check(actualVersion == JsonPrimitive(VERSION)) {
+                "Help files other than version 1 cannot be loaded; actual=$actualVersion"
+            }
+
+            return Json.decodeFromJsonElement<HelpDefinition>(helpJson)
         }
 
         @JvmStatic
