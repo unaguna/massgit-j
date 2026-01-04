@@ -38,8 +38,7 @@ data class HelpDefinition(
         cmd: String = name,
         root: HelpDefinition = this,
         windowWidth: Int = 120,
-        @Suppress("MagicNumber")
-        optionWidth: Int = (windowWidth / 5),
+        optionWidth: Int = defaultOptionWidth(windowWidth),
         indentSize: Int = 4,
     ) {
         require(optionWidth > 0) { "optionWidth must be greater than zero" }
@@ -69,7 +68,12 @@ data class HelpDefinition(
                     optionWidth = optionWidth,
                     indentSize = indentSize
                 )
-                SectionType.RootOptions -> root.printOptions(out, section.targetOptions, optionWidth = optionWidth, indentSize = indentSize)
+                SectionType.RootOptions -> root.printOptions(
+                    out,
+                    section.targetOptions,
+                    optionWidth = optionWidth,
+                    indentSize = indentSize
+                )
             }
         }
     }
@@ -79,8 +83,7 @@ data class HelpDefinition(
         sectionName: String,
         cmd: String = name,
         windowWidth: Int = 120,
-        @Suppress("MagicNumber")
-        optionWidth: Int = (windowWidth / 5),
+        optionWidth: Int = defaultOptionWidth(windowWidth),
         indentSize: Int = 4,
     ) {
         val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
