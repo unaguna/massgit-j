@@ -2,7 +2,7 @@ package jp.unaguna.massgit.common.textio
 
 import java.io.PrintStream
 
-class IndentPrintStreamWrapper(private val printStream: PrintStream, private val windowWidth: Int = 120) {
+class IndentPrintStreamWrapper(private val printStream: PrintStream, val windowWidth: Int = 120) {
     private var indent = 0
     private var offsetInLine = 0
 

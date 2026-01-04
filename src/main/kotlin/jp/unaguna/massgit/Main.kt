@@ -41,7 +41,7 @@ class Main {
             val helpDef = HelpDefinition.load()
 
             // TODO: ウィンドウサイズを取得して、引数として使用する
-            helpDef.printUsage(System.out, "massgit")
+            helpDef.printSection(System.out, "usage", cmd = "massgit")
             return 127
         }
 

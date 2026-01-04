@@ -28,6 +28,7 @@ class HelpTest {
             )
         }
 
+        println(actualStdout)
         assert(actualStdout.startsWith("massgit"))
         assertContains(actualStdout, "massgit [<options>] <subcommand> [<args>]")
         assertEquals(expectedStderr, actualStderr)
@@ -52,6 +53,7 @@ class HelpTest {
             )
         }
 
+        println(actualStdout)
         assertContains(actualStdout, "massgit [<options>] mg-clone")
         assertEquals(expectedStderr, actualStderr)
         assertEquals(expectedExitCode, actualExitCode)
@@ -75,6 +77,7 @@ class HelpTest {
             )
         }
 
+        println(actualStdout)
         assertContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
         assertContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
         assertEquals(expectedStderr, actualStderr)
@@ -99,6 +102,7 @@ class HelpTest {
             )
         }
 
+        println(actualStdout)
         assertContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
         assertNotContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
         assertEquals(expectedStderr, actualStderr)
@@ -123,6 +127,7 @@ class HelpTest {
             )
         }
 
+        println(actualStdout)
         assertNotContains(actualStdout, "massgit [<options>] mg-marker list [<repo>...]")
         assertContains(actualStdout, "massgit [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]")
         assertContains(actualStdout, "--add")

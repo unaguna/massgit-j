@@ -16,12 +16,17 @@ data class HelpDefinition(
     val name: String,
     val description: String? = null,
     val subdesc: String? = null,
-    val usages: List<String>,
-    val options: List<Option>,
+    val sections: List<Section> = emptyList(),
     val subcommands: List<HelpDefinition>? = null,
 ) {
-    fun subcommandExists(subcommand: String): Boolean {
-        return this.subcommands?.find { it.name == subcommand } != null
+
+    fun getSubcommandOrNull(subcommand: String): HelpDefinition? {
+        return this.subcommands?.find { it.name == subcommand }
+    }
+
+    fun getSubcommand(subcommand: String): HelpDefinition {
+        return this.getSubcommandOrNull(subcommand)
+            ?: error("Subcommand $subcommand not found")
     }
 
     fun print(
@@ -43,12 +48,88 @@ data class HelpDefinition(
             out.println()
         }
 
-        printUsage(out, cmd = cmd, indentSize = indentSize)
-        out.println()
+        sections.forEach { section ->
+            when (section.type) {
+                "options" -> printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize)
+                "subcommands" -> printSubcommands(out, section, optionWidth = optionWidth, indentSize = indentSize)
+                "regular" -> printSection(out, section, cmd = cmd, optionWidth = optionWidth, indentSize = indentSize)
+                else -> error("unknown section type '${section.type}'")
+            }
+        }
+    }
 
-        out.println("Options:")
+    @Suppress("LongParameterList")
+    fun printSection(
+        out: PrintStream,
+        sectionName: String,
+        cmd: String = name,
+        windowWidth: Int = 120,
+        @Suppress("MagicNumber")
+        optionWidth: Int = (windowWidth / 5),
+        indentSize: Int = 4,
+    ) {
+        val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
+        printSection(out, sectionName = sectionName, cmd = cmd, optionWidth = optionWidth, indentSize = indentSize)
+    }
+
+    fun printSection(
+        out: IndentPrintStreamWrapper,
+        sectionName: String,
+        cmd: String = name,
+        optionWidth: Int? = null,
+        indentSize: Int = 4,
+    ) {
+        val section = sections.find { it.name == sectionName }!!
+        printSection(out, section, cmd = cmd, optionWidth = optionWidth, indentSize = indentSize)
+    }
+
+    fun printSection(
+        out: IndentPrintStreamWrapper,
+        section: Section,
+        cmd: String = name,
+        optionWidth: Int? = null,
+        indentSize: Int = 4,
+    ) {
+        val optionWidth = optionWidth
+            ?: defaultOptionWidth(out.windowWidth)
+        out.println(section.header)
         out.withIndent(indentSize) {
-            options.forEach { option ->
+            section.items.forEach { item ->
+                val left = item.left.format(cmd)
+                out.print(left)
+
+                if (item.right != null) {
+                    if (left.length > optionWidth) {
+                        out.println()
+                        out.print(" ".repeat(optionWidth + 2))
+                    } else {
+                        out.print(" ".repeat(optionWidth - left.length + 2))
+                    }
+
+                    out.withIndent(optionWidth + 2) {
+                        out.println(item.right)
+                    }
+                } else {
+                    out.println()
+                }
+            }
+        }
+        out.println()
+    }
+
+    fun printOptions(
+        out: IndentPrintStreamWrapper,
+        section: Section,
+        optionWidth: Int? = null,
+        indentSize: Int = 4,
+    ) {
+        require(section.type == "options")
+
+        val optionWidth = optionWidth
+            ?: defaultOptionWidth(out.windowWidth)
+        out.println(section.header)
+        out.withIndent(indentSize) {
+            section.options.forEach { option ->
                 val optionStr = option.toString()
                 out.print(optionStr)
                 if (optionStr.length > optionWidth) {
@@ -64,8 +145,17 @@ data class HelpDefinition(
             }
         }
         out.println()
+    }
 
-        out.println("Subcommands:")
+    fun printSubcommands(
+        out: IndentPrintStreamWrapper,
+        section: Section,
+        optionWidth: Int? = null,
+        indentSize: Int = 4,
+    ) {
+        val optionWidth = optionWidth
+            ?: defaultOptionWidth(out.windowWidth)
+        out.println(section.header)
         out.withIndent(indentSize) {
             subcommands?.forEach { subcommand ->
                 out.print(subcommand.name)
@@ -81,101 +171,11 @@ data class HelpDefinition(
                 }
             }
         }
-    }
-
-    fun printUsage(
-        out: PrintStream,
-        cmd: String = name,
-        windowWidth: Int = 120,
-        indentSize: Int = 4,
-    ) {
-        printUsage(
-            IndentPrintStreamWrapper(out, windowWidth = windowWidth),
-            cmd,
-            indentSize = indentSize,
-        )
-    }
-
-    fun printUsage(
-        out: IndentPrintStreamWrapper,
-        cmd: String = name,
-        indentSize: Int = 4,
-    ) {
-        out.println("Usage:")
-        out.withIndent(indentSize) {
-            usages.forEach { usage ->
-                out.println(usage.format(cmd))
-            }
-        }
-    }
-
-    @Suppress("LongParameterList")
-    fun printSubcommand(
-        out: PrintStream,
-        cmd: String = name,
-        subcommand: String,
-        windowWidth: Int = 120,
-        @Suppress("MagicNumber")
-        optionWidth: Int = (windowWidth / 5),
-        indentSize: Int = 4,
-    ) {
-        require(optionWidth > 0) { "optionWidth must be greater than zero" }
-        require(windowWidth > 0) { "windowWidth must be greater than zero" }
-        require(optionWidth <= windowWidth - 2) { "optionWidth must be less than or equal to windowWidth - 2" }
-
-        val out = IndentPrintStreamWrapper(out, windowWidth = windowWidth)
-        val subcommandHelpDef = this.subcommands?.find { it.name == subcommand }
-            ?: error("Subcommand \"${subcommand}\" is not defined")
-
-        if (subcommandHelpDef.description != null) {
-            out.println(subcommandHelpDef.description)
-            out.println()
-        }
-
-        subcommandHelpDef.printUsage(out, cmd = cmd, indentSize = indentSize)
-        out.println()
-
-        out.println("Options:")
-        out.withIndent(indentSize) {
-            options.forEach { option ->
-                val optionStr = option.toString()
-                out.print(optionStr)
-                if (optionStr.length > optionWidth) {
-                    out.println()
-                    out.print(" ".repeat(optionWidth + 2))
-                } else {
-                    out.print(" ".repeat(optionWidth - optionStr.length + 2))
-                }
-
-                out.withIndent(optionWidth + 2) {
-                    out.println(option.description)
-                }
-            }
-        }
-        out.println()
-
-        out.println("Options for Subcommand:")
-        out.withIndent(indentSize) {
-            subcommandHelpDef.options.forEach { option ->
-                val optionStr = option.toString()
-                out.print(optionStr)
-                if (optionStr.length > optionWidth) {
-                    out.println()
-                    out.print(" ".repeat(optionWidth + 2))
-                } else {
-                    out.print(" ".repeat(optionWidth - optionStr.length + 2))
-                }
-
-                out.withIndent(optionWidth + 2) {
-                    out.println(option.description)
-                }
-            }
-        }
         out.println()
     }
 
     companion object {
-        private const val VERSION = 1
+        private const val VERSION = 2
 
         fun load(url: URL? = null): HelpDefinition {
             val helpUrl = url
@@ -199,6 +199,24 @@ data class HelpDefinition(
             helpDef.print(System.out, "command", windowWidth = 80)
         }
     }
+
+    @Suppress("MagicNumber")
+    private fun defaultOptionWidth(windowWidth: Int): Int = windowWidth / 5
+
+    @Serializable
+    data class Section(
+        val name: String,
+        val header: String,
+        val type: String, // TODO: enum にする
+        val items: List<SectionItem> = emptyList(),
+        val options: List<Option> = emptyList(),
+    )
+
+    @Serializable
+    data class SectionItem(
+        val left: String,
+        val right: String? = null,
+    )
 
     @Serializable
     data class Option(

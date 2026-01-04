@@ -1,92 +1,165 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "massgit",
   "description": "massgit -- a tool that enables you to perform the same operation on multiple Git repositories with a single command execution.",
-  "usages": [
-    "%s [<options>] <subcommand> [<args>]",
-    "%s (--version | --help)"
-  ],
-  "options": [
+  "sections": [
     {
-      "names": ["--marker", "-m"],
-      "type": "String",
-      "dest": "marker_condition",
-      "description": "Specify target repositories by marker. You can specify boolean expression such as 'marker1 or marker2'."
+      "name": "usage",
+      "header": "Usage:",
+      "type": "regular",
+      "items": [
+        {
+          "left": "%s [<options>] <subcommand> [<args>]"
+        },
+        {
+          "left": "%s (--version | --help)"
+        }
+      ]
     },
     {
-      "names": ["--rep-suffix"],
-      "type": "String",
-      "dest": "rep_suffix",
-      "description": "The suffix of repository name in output. Default is ': ' in almost every subcommand."
+      "name": "options",
+      "header": "Options:",
+      "type": "options",
+      "options": [
+        {
+          "names": ["--marker", "-m"],
+          "type": "String",
+          "dest": "marker_condition",
+          "description": "Specify target repositories by marker. You can specify boolean expression such as 'marker1 or marker2'."
+        },
+        {
+          "names": ["--rep-suffix"],
+          "type": "String",
+          "dest": "rep_suffix",
+          "description": "The suffix of repository name in output. Default is ': ' in almost every subcommand."
+        },
+        {
+          "names": ["--version"],
+          "type": null,
+          "dest": null,
+          "description": "Show version number of massgit"
+        }
+      ]
     },
     {
-      "names": ["--version"],
-      "type": null,
-      "dest": null,
-      "description": "Show version number of massgit"
+      "name": "subcommands",
+      "header": "Subcommands:",
+      "type": "subcommands"
     }
   ],
   "subcommands": [
     {
       "name": "mg-clone",
       "subdesc": "Clone repositories written in repos.json.",
-      "usages": [
-        "%s [<options>] mg-clone",
-        "%s mg-clone --help"
-      ],
-      "options": [
+      "sections": [
+        {
+          "name": "usage",
+          "header": "Usage:",
+          "type": "regular",
+          "items": [
+            {
+              "left": "%s [<options>] mg-clone"
+            },
+            {
+              "left": "%s mg-clone --help"
+            }
+          ]
+        }
       ]
     },
     {
       "name": "mg-marker",
       "subdesc": "",
-      "usages": [
-        "%s [<options>] mg-marker list [<repo>...]",
-        "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]",
-        "%s mg-marker --help"
-      ],
-      "options": [
+      "sections": [
+        {
+          "name": "usage",
+          "header": "Usage:",
+          "type": "regular",
+          "items": [
+            {
+              "left": "%s [<options>] mg-marker list [<repo>...]"
+            },
+            {
+              "left": "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]"
+            },
+            {
+              "left": "%s mg-marker --help"
+            }
+          ]
+        }
       ]
     },
     {
       "name": "mg-marker list",
       "subdesc": "",
-      "usages": [
-        "%s [<options>] mg-marker list [<repo>...]",
-        "%s mg-marker list --help"
-      ],
-      "options": [
+      "sections": [
+        {
+          "name": "usage",
+          "header": "Usage:",
+          "type": "regular",
+          "items": [
+            {
+              "left": "%s [<options>] mg-marker list [<repo>...]"
+            },
+            {
+              "left": "%s mg-marker list --help"
+            }
+          ]
+        }
       ]
     },
     {
       "name": "mg-marker edit",
       "subdesc": "",
-      "usages": [
-        "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]",
-        "%s mg-marker edit --help"
-      ],
-      "options": [
+      "sections": [
         {
-          "names": ["--add", "-a"],
-          "type": "String",
-          "dest": "marker",
-          "description": "Add specified marker into target repositories."
+          "name": "usage",
+          "header": "Usage:",
+          "type": "regular",
+          "items": [
+            {
+              "left": "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]"
+            },
+            {
+              "left": "%s mg-marker edit --help"
+            }
+          ]
         },
         {
-          "names": ["--remove", "-r"],
-          "type": "String",
-          "dest": "marker",
-          "description": "Remove specified marker from target repositories."
+          "name": "options",
+          "header": "Options:",
+          "type": "options",
+          "options": [
+            {
+              "names": ["--add", "-a"],
+              "type": "String",
+              "dest": "marker",
+              "description": "Add specified marker into target repositories."
+            },
+            {
+              "names": ["--remove", "-r"],
+              "type": "String",
+              "dest": "marker",
+              "description": "Remove specified marker from target repositories."
+            }
+          ]
         }
       ]
     },
     {
       "name": "<git-subcommand>",
       "subdesc": "Execute the subcommand for repositories.",
-      "usages": [
-        "%s [<options>] <git-subcommand> [<args>]"
-      ],
-      "options": [
+      "sections": [
+        {
+          "name": "usage",
+          "header": "Usage:",
+          "type": "regular",
+          "items": [
+            {
+              "left":  "%s [<options>] <git-subcommand> [<args>]"
+            }
+          ]
+        }
       ]
     }
   ]
