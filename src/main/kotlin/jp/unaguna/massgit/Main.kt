@@ -22,15 +22,11 @@ class Main {
         reposInj: List<Repo>? = null,
         processExecutor: ProcessExecutor? = null,
     ): Int {
-        if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
-            val helpDef = loadHelpDef()
+        if (mainArgs.mainOptions.isHelp()) {
+            val helpDef = HelpDefinition.load()
 
             // TODO: ウィンドウサイズを取得して、引数として使用する
-            when (mainArgs.subCommand) {
-                null -> helpDef.print(System.out, "massgit")
-                // TODO: massgit 専用サブコマンドの場合に限る
-                else -> helpDef.printSubcommand(System.out, "massgit", mainArgs.subCommand.name)
-            }
+            helpDef.print(System.out, "massgit")
 
             return 0
         }
@@ -42,7 +38,7 @@ class Main {
         // subCommand is required.
         // If not specified, print usage.
         if (mainArgs.subCommand == null) {
-            val helpDef = loadHelpDef()
+            val helpDef = HelpDefinition.load()
 
             // TODO: ウィンドウサイズを取得して、引数として使用する
             helpDef.printUsage(System.out, "massgit")
@@ -75,12 +71,6 @@ class Main {
     private fun showVersion() {
         val version = VersionProperties.getVersion()
         println("massgit on java $version")
-    }
-
-    private fun loadHelpDef(): HelpDefinition {
-        val helpUrl = this::class.java.getResource("/massgit-help.json")
-            ?: error("massgit-help.json could not be found")
-        return HelpDefinition.load(helpUrl)
     }
 
     companion object {

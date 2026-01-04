@@ -15,6 +15,10 @@ data class HelpDefinition(
     val options: List<Option>,
     val subcommands: List<HelpDefinition>? = null,
 ) {
+    fun subcommandExists(subcommand: String): Boolean {
+        return this.subcommands?.find { it.name == subcommand } != null
+    }
+
     fun print(
         out: PrintStream,
         cmd: String = name,
@@ -166,8 +170,12 @@ data class HelpDefinition(
     }
 
     companion object {
-        fun load(url: URL): HelpDefinition {
-            return Json.decodeFromString<HelpDefinition>(url.readText(Charsets.UTF_8))
+        fun load(url: URL? = null): HelpDefinition {
+            val helpUrl = url
+                ?: this::class.java.getResource("/massgit-help.json")
+                ?: error("massgit-help.json could not be found")
+
+            return Json.decodeFromString<HelpDefinition>(helpUrl.readText(Charsets.UTF_8))
         }
 
         @JvmStatic

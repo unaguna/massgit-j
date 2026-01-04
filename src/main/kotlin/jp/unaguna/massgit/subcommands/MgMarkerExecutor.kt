@@ -12,6 +12,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.ReposEditor
 import jp.unaguna.massgit.configfile.ReposLoader
 import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.help.HelpDefinition
 import org.slf4j.LoggerFactory
 
 class MgMarkerExecutor(
@@ -19,6 +20,11 @@ class MgMarkerExecutor(
     private val reposInj: List<Repo>? = null,
 ) : SubcommandExecutor {
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
+        if (mainArgs.subOptions.contains("--help")) {
+            printHelp()
+            return 0
+        }
+
         val (reposOriginal, reposFiltered) = ReposLoader(reposInj).load(conf)
         logger.debug("Repos original: {}", reposOriginal)
         logger.debug("Repos filtered: {}", reposFiltered)
@@ -33,6 +39,11 @@ class MgMarkerExecutor(
             MgMarkerMode.LIST -> listMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
             MgMarkerMode.EDIT -> editMarkers(reposOriginal, reposFiltered, mgMarkerOptions, targetRepos, conf)
         }
+    }
+
+    private fun printHelp() {
+        val helpDef = HelpDefinition.load()
+        helpDef.printSubcommand(System.out, "massgit", subcommand = "mg-marker")
     }
 
     private fun listMarkers(
@@ -158,6 +169,7 @@ private enum class MgMarkerOptionsDef(
     val names: List<String>,
     val argNum: Int,
 ) : jp.unaguna.massgit.common.args.OptionDef {
+    Help(listOf("--help"), 0),
     Add(listOf("--add", "-a"), 1),
     Remove(listOf("--remove", "-r"), 1),
     ;
@@ -182,10 +194,11 @@ private class MgMarkerOptions(
     )
 
     fun getEditQueries(): List<MarkerEditQuery> {
-        return this.getEditOptions().map { option ->
+        return this.getEditOptions().mapNotNull { option ->
             when (option.def) {
                 MgMarkerOptionsDef.Add -> MarkerEditQuery.Add(option.getOneArg())
                 MgMarkerOptionsDef.Remove -> MarkerEditQuery.Remove(option.getOneArg())
+                else -> null
             }
         }
     }
