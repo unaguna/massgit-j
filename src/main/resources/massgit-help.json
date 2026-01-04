@@ -64,6 +64,11 @@
               "left": "%s mg-clone --help"
             }
           ]
+        },
+        {
+          "name": "root-options",
+          "header": "Options",
+          "type": "RootOptions"
         }
       ]
     },
@@ -86,6 +91,11 @@
               "left": "%s mg-marker --help"
             }
           ]
+        },
+        {
+          "name": "root-options",
+          "header": "Options",
+          "type": "RootOptions"
         }
       ]
     },
@@ -105,6 +115,11 @@
               "left": "%s mg-marker list --help"
             }
           ]
+        },
+        {
+          "name": "root-options",
+          "header": "Options",
+          "type": "RootOptions"
         }
       ]
     },
@@ -124,6 +139,11 @@
               "left": "%s mg-marker edit --help"
             }
           ]
+        },
+        {
+          "name": "root-options",
+          "header": "Options",
+          "type": "RootOptions"
         },
         {
           "name": "options",

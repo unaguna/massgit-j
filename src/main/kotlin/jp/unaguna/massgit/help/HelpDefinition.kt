@@ -36,6 +36,7 @@ data class HelpDefinition(
     fun print(
         out: PrintStream,
         cmd: String = name,
+        root: HelpDefinition = this,
         windowWidth: Int = 120,
         @Suppress("MagicNumber")
         optionWidth: Int = (windowWidth / 5),
@@ -68,6 +69,7 @@ data class HelpDefinition(
                     optionWidth = optionWidth,
                     indentSize = indentSize
                 )
+                SectionType.RootOptions -> root.printOptions(out, section.targetOptions, optionWidth = optionWidth, indentSize = indentSize)
             }
         }
     }
@@ -128,6 +130,16 @@ data class HelpDefinition(
             }
         }
         out.println()
+    }
+
+    fun printOptions(
+        out: IndentPrintStreamWrapper,
+        sectionName: String,
+        optionWidth: Int? = null,
+        indentSize: Int = 4,
+    ) {
+        val section = sections.find { it.name == sectionName }!!
+        printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize)
     }
 
     fun printOptions(
@@ -196,7 +208,7 @@ data class HelpDefinition(
         indentSize: Int = 4,
     ) {
         getSubcommand(subcommand)
-            .print(out, cmd, windowWidth = windowWidth, optionWidth = optionWidth, indentSize = indentSize)
+            .print(out, cmd, root = this, windowWidth = windowWidth, optionWidth = optionWidth, indentSize = indentSize)
     }
 
     companion object {
@@ -235,6 +247,7 @@ data class HelpDefinition(
         val type: SectionType,
         val items: List<SectionItem> = emptyList(),
         val options: List<Option> = emptyList(),
+        val targetOptions: String = "options",
     )
 
     @Serializable
@@ -270,5 +283,6 @@ data class HelpDefinition(
         Regular,
         Options,
         Subcommands,
+        RootOptions,
     }
 }
