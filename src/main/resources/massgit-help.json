@@ -6,7 +6,7 @@
     {
       "name": "usage",
       "header": "Usage:",
-      "type": "regular",
+      "type": "Regular",
       "items": [
         {
           "left": "%s [<options>] <subcommand> [<args>]"
@@ -19,7 +19,7 @@
     {
       "name": "options",
       "header": "Options:",
-      "type": "options",
+      "type": "Options",
       "options": [
         {
           "names": ["--marker", "-m"],
@@ -44,7 +44,7 @@
     {
       "name": "subcommands",
       "header": "Subcommands:",
-      "type": "subcommands"
+      "type": "Subcommands"
     }
   ],
   "subcommands": [
@@ -55,7 +55,7 @@
         {
           "name": "usage",
           "header": "Usage:",
-          "type": "regular",
+          "type": "Regular",
           "items": [
             {
               "left": "%s [<options>] mg-clone"
@@ -74,7 +74,7 @@
         {
           "name": "usage",
           "header": "Usage:",
-          "type": "regular",
+          "type": "Regular",
           "items": [
             {
               "left": "%s [<options>] mg-marker list [<repo>...]"
@@ -96,7 +96,7 @@
         {
           "name": "usage",
           "header": "Usage:",
-          "type": "regular",
+          "type": "Regular",
           "items": [
             {
               "left": "%s [<options>] mg-marker list [<repo>...]"
@@ -115,7 +115,7 @@
         {
           "name": "usage",
           "header": "Usage:",
-          "type": "regular",
+          "type": "Regular",
           "items": [
             {
               "left": "%s [<options>] mg-marker edit <options-for-subcommand>[...] [<repo>...]"
@@ -128,7 +128,7 @@
         {
           "name": "options",
           "header": "Options:",
-          "type": "options",
+          "type": "Options",
           "options": [
             {
               "names": ["--add", "-a"],
@@ -153,7 +153,7 @@
         {
           "name": "usage",
           "header": "Usage:",
-          "type": "regular",
+          "type": "Regular",
           "items": [
             {
               "left":  "%s [<options>] <git-subcommand> [<args>]"

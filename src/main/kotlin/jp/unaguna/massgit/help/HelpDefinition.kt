@@ -50,10 +50,20 @@ data class HelpDefinition(
 
         sections.forEach { section ->
             when (section.type) {
-                "options" -> printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize)
-                "subcommands" -> printSubcommands(out, section, optionWidth = optionWidth, indentSize = indentSize)
-                "regular" -> printSection(out, section, cmd = cmd, optionWidth = optionWidth, indentSize = indentSize)
-                else -> error("unknown section type '${section.type}'")
+                SectionType.Options -> printOptions(out, section, optionWidth = optionWidth, indentSize = indentSize)
+                SectionType.Subcommands -> printSubcommands(
+                    out,
+                    section,
+                    optionWidth = optionWidth,
+                    indentSize = indentSize
+                )
+                SectionType.Regular -> printSection(
+                    out,
+                    section,
+                    cmd = cmd,
+                    optionWidth = optionWidth,
+                    indentSize = indentSize
+                )
             }
         }
     }
@@ -123,7 +133,7 @@ data class HelpDefinition(
         optionWidth: Int? = null,
         indentSize: Int = 4,
     ) {
-        require(section.type == "options")
+        require(section.type == SectionType.Options)
 
         val optionWidth = optionWidth
             ?: defaultOptionWidth(out.windowWidth)
@@ -207,7 +217,7 @@ data class HelpDefinition(
     data class Section(
         val name: String,
         val header: String,
-        val type: String, // TODO: enum にする
+        val type: SectionType,
         val items: List<SectionItem> = emptyList(),
         val options: List<Option> = emptyList(),
     )
@@ -239,5 +249,11 @@ data class HelpDefinition(
 
     enum class ArgType {
         String,
+    }
+
+    enum class SectionType {
+        Regular,
+        Options,
+        Subcommands,
     }
 }
