@@ -90,13 +90,12 @@ data class HelpDefinition(
     fun printUsage(
         out: IndentPrintStreamWrapper,
         cmd: String = name,
-        subcommand: String? = null,
         indentSize: Int = 4,
     ) {
         out.println("Usage:")
         out.withIndent(indentSize) {
             usages.forEach { usage ->
-                out.println(usage.format(cmd, subcommand))
+                out.println(usage.format(cmd))
             }
         }
     }
@@ -124,7 +123,7 @@ data class HelpDefinition(
             out.println()
         }
 
-        subcommandHelpDef.printUsage(out, cmd = cmd, subcommand = subcommand, indentSize = indentSize)
+        subcommandHelpDef.printUsage(out, cmd = cmd, indentSize = indentSize)
         out.println()
 
         out.println("Options:")
