@@ -15,25 +15,18 @@ class Main {
         logger.info("Start massgit.")
     }
 
-    @Suppress("ReturnCount", "ThrowsCount")
+    @Suppress("MagicNumber", "ReturnCount", "ThrowsCount")
     fun run(
         mainArgs: MainArgs,
         confInj: MainConfigurations? = null,
         reposInj: List<Repo>? = null,
         processExecutor: ProcessExecutor? = null,
     ): Int {
-        if (mainArgs.mainOptions.isHelp() || mainArgs.subOptions.contains("--help")) {
-            val helpUrl = this::class.java.getResource("/massgit-help.json")
-                ?: error("massgit-help.json could not be found")
-            val helpDef = HelpDefinition.load(helpUrl)
+        if (mainArgs.mainOptions.isHelp()) {
+            val helpDef = HelpDefinition.load()
 
-            // TODO: jvm 実行時は cmd を java -jar massgit.jar に変更する。
             // TODO: ウィンドウサイズを取得して、引数として使用する
-            when (mainArgs.subCommand) {
-                null -> helpDef.print(System.out, "massgit")
-                // TODO: massgit 専用サブコマンドの場合に限る
-                else -> helpDef.printSubcommand(System.out, "massgit", mainArgs.subCommand.name)
-            }
+            helpDef.print(System.out, "massgit")
 
             return 0
         }
@@ -41,8 +34,16 @@ class Main {
             showVersion()
             return 0
         }
-        // TODO: サブコマンドが無い場合、usage を表示して終了
-        requireNotNull(mainArgs.subCommand)
+
+        // subCommand is required.
+        // If not specified, print usage.
+        if (mainArgs.subCommand == null) {
+            val helpDef = HelpDefinition.load()
+
+            // TODO: ウィンドウサイズを取得して、引数として使用する
+            helpDef.printSection(System.out, "usage", cmd = "massgit")
+            return 127
+        }
 
         val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
