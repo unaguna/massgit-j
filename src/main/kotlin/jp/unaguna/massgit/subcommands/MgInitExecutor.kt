@@ -4,6 +4,7 @@ import jp.unaguna.massgit.MainArgs
 import jp.unaguna.massgit.MainConfigurations
 import jp.unaguna.massgit.Subcommand
 import jp.unaguna.massgit.SubcommandExecutor
+import jp.unaguna.massgit.common.files.isDirectoryContainsEntry
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.ReposEditor
 import jp.unaguna.massgit.help.HelpDefinition
@@ -21,6 +22,7 @@ class MgInitExecutor(
 ) : SubcommandExecutor {
     override val subcommand: Subcommand = Subcommand.MgInit
 
+    @Suppress("ReturnCount")
     override fun execute(conf: MainConfigurations, mainArgs: MainArgs): Int {
         if (mainArgs.subOptions.contains("--help")) {
             printHelp()
@@ -28,6 +30,12 @@ class MgInitExecutor(
         }
 
         check(conf.massProjectDir.isDirectory()) { "massProjectDir must exist and be a directory" }
+
+        if (conf.massProjectConfDir.isDirectoryContainsEntry()) {
+            System.err.println("there is already .massgit directory: ${conf.massProjectConfDir}")
+            @Suppress("MagicNumber")
+            return 2
+        }
 
         // TODO: 探索の深さを指定できるようにする
         val gitRepoPathList = lookForGitRepos(maxDepth = MINIMUM_SEARCH_DEPTH)
