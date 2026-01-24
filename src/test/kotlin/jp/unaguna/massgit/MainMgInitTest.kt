@@ -1,8 +1,10 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
+import jp.unaguna.massgit.testcommon.io.buildStringByPrintStream
 import jp.unaguna.massgit.testcommon.process.DummyProcessExecutor
-import jp.unaguna.massgit.testcommon.stdio.trapStderrAndResult
+import jp.unaguna.massgit.testcommon.stdio.trapStdoutAndResult
+import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderrResult
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -29,6 +31,11 @@ class MainMgInitTest {
             Repo(dirname = "repo1"),
             Repo(dirname = "repo2"),
         )
+        val expectedStdout = buildStringByPrintStream {
+            expectedRepos.forEach { repo ->
+                println("${repo.dirname}: ${workingDir.resolve(repo.dirname).normalize()}")
+            }
+        }
 
         // create mock repositories
         expectedRepos.forEach { expectedRepo ->
@@ -51,18 +58,19 @@ class MainMgInitTest {
             mainArgs.mainOptions,
             massProjectDirInj = workingDir,
         )
-        val actualExitCode = Main().run(
-            mainArgs,
-            confInj = conf,
-            processExecutor = processExecutor,
-        )
+        val (actualStdout, actualExitCode) = trapStdoutAndResult {
+            Main().run(
+                mainArgs,
+                confInj = conf,
+                processExecutor = processExecutor,
+            )
+        }
 
         assertEquals(0, actualExitCode)
         assert(expectedMassgitDir.isDirectory())
         assert(expectedReposPath.isRegularFile())
-
-        val actualRepos = Repo.loadFromFile(expectedReposPath)
-        assertContentEquals(expectedRepos, actualRepos)
+        assertContentEquals(expectedRepos, Repo.loadFromFile(expectedReposPath))
+        assertEquals(expectedStdout, actualStdout)
     }
 
     @Test
@@ -78,6 +86,11 @@ class MainMgInitTest {
             Repo(dirname = "repo1"),
             Repo(dirname = "repo2"),
         )
+        val expectedStdout = buildStringByPrintStream {
+            expectedRepos.forEach { repo ->
+                println("${repo.dirname}: ${workingDir.resolve(repo.dirname).normalize()}")
+            }
+        }
 
         // create mock repositories
         expectedRepos.forEach { expectedRepo ->
@@ -100,18 +113,19 @@ class MainMgInitTest {
             mainArgs.mainOptions,
             massProjectDirInj = workingDir,
         )
-        val actualExitCode = Main().run(
-            mainArgs,
-            confInj = conf,
-            processExecutor = processExecutor,
-        )
+        val (actualStdout, actualExitCode) = trapStdoutAndResult {
+            Main().run(
+                mainArgs,
+                confInj = conf,
+                processExecutor = processExecutor,
+            )
+        }
 
         assertEquals(0, actualExitCode)
         assert(expectedMassgitDir.isDirectory())
         assert(expectedReposPath.isRegularFile())
-
-        val actualRepos = Repo.loadFromFile(expectedReposPath)
-        assertContentEquals(expectedRepos, actualRepos)
+        assertContentEquals(expectedRepos, Repo.loadFromFile(expectedReposPath))
+        assertEquals(expectedStdout, actualStdout)
     }
 
     @Test
@@ -150,7 +164,7 @@ class MainMgInitTest {
             mainArgs.mainOptions,
             massProjectDirInj = workingDir,
         )
-        val (actualStderr, actualExitCode) = trapStderrAndResult {
+        val (actualStdout, actualStderr, actualExitCode) = trapStdoutStderrResult {
             Main().run(
                 mainArgs,
                 confInj = conf,
@@ -160,6 +174,7 @@ class MainMgInitTest {
 
         assertEquals(2, actualExitCode)
         assertContains(actualStderr, "there is already .massgit directory")
+        assertEquals("", actualStdout)
         // assert that repos.json is not updated
         assertEquals(0L, expectedReposPath.fileSize())
     }

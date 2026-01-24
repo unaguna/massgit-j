@@ -63,6 +63,11 @@ class MgInitExecutor(
         // there is no risk of accidentally creating a directory outside the project directory.
         conf.massProjectConfDir.createDirectories()
 
+        printFoundRepoNum(repos.size)
+        repos.forEach { repo ->
+            println("${repo.dirname}: ${conf.massProjectDir.resolve(repo.dirname).normalize()}")
+        }
+
         ReposEditor(repos, conf).overwrite()
         // TODO: 各 Repo の url を git remote で取得して埋める
 
@@ -80,6 +85,14 @@ class MgInitExecutor(
                 it.parent
             }
             .filter { it != root }
+    }
+
+    private fun printFoundRepoNum(num: Int) {
+        when (num) {
+            0 -> System.err.println("No repositories are found")
+            1 -> System.err.println("1 repository is found")
+            else -> System.err.println("$num repositories are found")
+        }
     }
 
     private fun printHelp() {
