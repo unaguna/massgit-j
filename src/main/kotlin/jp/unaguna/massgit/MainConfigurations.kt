@@ -35,7 +35,15 @@ class MainConfigurations(
     }
 
     val gitConfigurations: List<GitConfig> by lazy {
-        options.getGitConfig()
+        val propKeyPrefix = Prop.KeyPrefix.GitConfig.propertyPrefix + "."
+        val definedByProp = prop.getPropertiesAsSequence(Prop.KeyPrefix.GitConfig)
+            .map { (key, value) -> GitConfig(key.removePrefix(propKeyPrefix), value) }
+            .toList()
+
+        GitConfig.mergeLists(
+            options.getGitConfig(),
+            definedByProp,
+        )
     }
 
     val repSuffix: String? = options.getRepSuffix()

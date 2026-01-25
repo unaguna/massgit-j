@@ -14,6 +14,20 @@ data class GitConfig(val name: String, val value: String) {
 
             return GitConfig(parts[0], parts[1])
         }
+
+        fun mergeLists(vararg lists: List<GitConfig>): List<GitConfig> {
+            val mergedMap = mutableMapOf<String, GitConfig>()
+            for (list in lists.reversed()) {
+                for (config in list) {
+                    mergedMap[config.name] = config
+                }
+            }
+
+            return mergedMap.asSequence()
+                .sortedBy { it.key }
+                .map { it.value }
+                .toList()
+        }
     }
 }
 

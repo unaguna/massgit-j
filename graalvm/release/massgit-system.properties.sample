@@ -1,1 +1,2 @@
 subcommands.prohibited.push=true
+# git.config.core.quotepath=false
