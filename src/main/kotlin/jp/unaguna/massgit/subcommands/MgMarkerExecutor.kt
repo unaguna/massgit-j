@@ -12,6 +12,7 @@ import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.ReposEditor
 import jp.unaguna.massgit.configfile.ReposLoader
 import jp.unaguna.massgit.exception.MassgitException
+import jp.unaguna.massgit.exception.UnknownOptionException
 import jp.unaguna.massgit.help.HelpDefinition
 import org.slf4j.LoggerFactory
 
@@ -233,8 +234,6 @@ private class MgMarkerOptions(
         }
     }
 }
-
-private class UnknownOptionException(unknownOption: String) : MassgitException("Unknown option: $unknownOption")
 
 private class MgMarkerNullModeException : MassgitException("mode must be 'list' or 'edit'; specified mode: null")
 

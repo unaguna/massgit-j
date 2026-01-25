@@ -116,14 +116,19 @@ abstract class GitProcessManagerBase(
 
 open class GitProcessRegularManager(
     protected val mainArgs: MainArgs,
+    protected val gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManagerBase(processExecutor) {
-    override val cmdTemplate = buildProcessArgs {
+    final override val cmdTemplate = buildProcessArgs {
         requireNotNull(mainArgs.subCommand)
 
         append("git")
         append("-C")
         append { r -> listOf(r.dirname) }
+        for (gitConfig in gitConfigurations) {
+            append("-c")
+            append(gitConfig.toStringAsArg())
+        }
         append(mainArgs.subCommand.name)
         append(mainArgs.subOptions)
     }
@@ -141,8 +146,9 @@ open class GitProcessRegularManager(
 
 class GitProcessDiffManager(
     mainArgs: MainArgs,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager(mainArgs, processExecutor) {
+) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
@@ -168,16 +174,18 @@ class GitProcessDiffManager(
 
 class GitProcessFilepathManager(
     mainArgs: MainArgs,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager(mainArgs, processExecutor) {
+) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
     override val summaryPrinter = EmptySummaryPrinter()
 }
 
 class GitProcessGrepManager(
     mainArgs: MainArgs,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager(mainArgs, processExecutor) {
+) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
     override val summaryPrinter = EmptySummaryPrinter()
     override val exitCodeDecider: ExitCodeDecider = GrepExitCodeDecider()

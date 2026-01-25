@@ -284,6 +284,7 @@ data class HelpDefinition(
 
     enum class ArgType {
         String,
+        Integer,
     }
 
     enum class SectionType {

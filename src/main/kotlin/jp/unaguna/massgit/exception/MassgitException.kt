@@ -16,6 +16,8 @@ abstract class MassgitException(msg: String, cause: Throwable?) : Exception(msg,
     }
 }
 
+class UnknownOptionException(unknownOption: String) : MassgitException("Unknown option: $unknownOption")
+
 class RepoNotContainUrlException(repoName: String) :
     MassgitException("URL for repo '$repoName' is not specified")
 

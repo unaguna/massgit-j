@@ -2,6 +2,7 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.subcommands.GitProcessingSubcommandExecutor
+import jp.unaguna.massgit.subcommands.MgInitExecutor
 import jp.unaguna.massgit.subcommands.MgMarkerExecutor
 
 sealed class Subcommand(val name: String) {
@@ -67,6 +68,25 @@ sealed class Subcommand(val name: String) {
         }
     }
 
+    object MgInit : Subcommand("mg-init") {
+        override fun executor(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?,
+            reposInj: List<Repo>?,
+        ): SubcommandExecutor {
+            return MgInitExecutor(conf)
+        }
+
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            throw UnsupportedOperationException()
+        }
+    }
+
     object Diff : GitSubcommand("diff") {
         override fun gitProcessManager(
             mainArgs: MainArgs,
@@ -74,7 +94,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessDiffManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -85,7 +109,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessGrepManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -96,7 +124,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessFilepathManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -117,7 +149,12 @@ sealed class Subcommand(val name: String) {
             mainArgs: MainArgs,
             conf: MainConfigurations,
             processExecutor: ProcessExecutor?
-        ): GitProcessManager = GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        ): GitProcessManager =
+            GitProcessRegularManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
     }
 
     class OtherGitSubcommand(name: String) : GitSubcommand(name) {
@@ -148,6 +185,7 @@ sealed class Subcommand(val name: String) {
         fun of(subcommand: String): Subcommand {
             return when {
                 subcommand == "mg-clone" -> MgClone
+                subcommand == "mg-init" -> MgInit
                 subcommand == "mg-marker" -> MgMarker
                 fixedGitSubcommands.containsKey(subcommand) -> fixedGitSubcommands[subcommand]!!
                 else -> OtherGitSubcommand(subcommand)
