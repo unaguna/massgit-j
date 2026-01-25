@@ -49,6 +49,38 @@
   ],
   "subcommands": [
     {
+      "name": "mg-init",
+      "subdesc": "Initialize massgit project.",
+      "sections": [
+        {
+          "name": "usage",
+          "header": "Usage:",
+          "type": "Regular",
+          "items": [
+            {
+              "left": "%s mg-init [<options>...]"
+            },
+            {
+              "left": "%s mg-init --help"
+            }
+          ]
+        },
+        {
+          "name": "options",
+          "header": "Options:",
+          "type": "Options",
+          "options": [
+            {
+              "names": ["--depth"],
+              "type": "Integer",
+              "dest": "depth",
+              "description": "Specify the depth to search for Git repositories. Default and minimum value is 1."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "mg-clone",
       "subdesc": "Clone repositories written in repos.json.",
       "sections": [
