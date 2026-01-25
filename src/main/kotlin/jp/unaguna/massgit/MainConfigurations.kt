@@ -34,6 +34,18 @@ class MainConfigurations(
         options.getMarker()?.let { MarkerConditions(it) }
     }
 
+    val gitConfigurations: List<GitConfig> by lazy {
+        val propKeyPrefix = Prop.KeyPrefix.GitConfig.propertyPrefix + "."
+        val definedByProp = prop.getPropertiesAsSequence(Prop.KeyPrefix.GitConfig)
+            .map { (key, value) -> GitConfig(key.removePrefix(propKeyPrefix), value) }
+            .toList()
+
+        GitConfig.mergeLists(
+            options.getGitConfig(),
+            definedByProp,
+        )
+    }
+
     val repSuffix: String? = options.getRepSuffix()
 
     fun subcommandAcceptation(subcommand: String): SubcommandAcceptation {

@@ -26,6 +26,13 @@ class Prop(
                 ?.takeIf { it.exists() }?.toUri()?.toURL(),
         )
         load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
+
+        if (logger.isDebugEnabled) {
+            propertyNames().asIterator().forEach {
+                it as String
+                logger.debug("Massgit Prop: {}={}", it, getProperty(it))
+            }
+        }
     }
 
     private fun load(prop: Properties, url: URL?) {
@@ -50,6 +57,14 @@ class Prop(
         return wrapper.getProperty(key.propertyName)
     }
 
+    fun getPropertiesAsSequence(prefix: KeyPrefix): Sequence<KeyValue<String>> {
+        val prefixStr = prefix.propertyPrefix + "."
+        return wrapper.propertyNames().asSequence()
+            .map { it as String }
+            .filter { it.startsWith(prefixStr) }
+            .map { KeyValue(it, wrapper.getProperty(it)) }
+    }
+
     fun getBoolean(key: Key): Boolean? {
         require(key.type == Boolean::class) { "type of property '${key.propertyName}' is not boolean" }
         return getProperty(key)?.let { java.lang.Boolean.parseBoolean(it) }
@@ -66,6 +81,15 @@ class Prop(
             cmd: String,
         ) : Key("subcommands.prohibited.$cmd", Boolean::class)
     }
+
+    sealed class KeyPrefix(val propertyPrefix: String, val type: KClass<*> = String::class) {
+        object GitConfig : KeyPrefix("git.config", String::class)
+    }
+
+    data class KeyValue<V>(
+        val key: String,
+        val value: V,
+    )
 
     companion object {
         @JvmStatic

@@ -3,6 +3,7 @@ package jp.unaguna.massgit
 enum class MassgitOptionsDef(val names: List<String>, val argNum: Int) : jp.unaguna.massgit.common.args.OptionDef {
     VERSION(listOf("--version"), 0),
     HELP(listOf("--help"), 0),
+    GIT_CONFIG(listOf("-c"), 1),
     MARKER(listOf("--marker", "-m"), 1),
     REP_SUFFIX(listOf("--rep-suffix"), 1),
     ;
