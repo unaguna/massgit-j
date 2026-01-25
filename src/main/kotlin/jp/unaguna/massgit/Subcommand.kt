@@ -94,7 +94,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessDiffManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessDiffManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -105,7 +109,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessGrepManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessGrepManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -116,7 +124,11 @@ sealed class Subcommand(val name: String) {
             processExecutor: ProcessExecutor?
         ): GitProcessManager {
             check(mainArgs.subCommand == this)
-            return GitProcessFilepathManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+            return GitProcessFilepathManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
         }
     }
 
@@ -137,7 +149,12 @@ sealed class Subcommand(val name: String) {
             mainArgs: MainArgs,
             conf: MainConfigurations,
             processExecutor: ProcessExecutor?
-        ): GitProcessManager = GitProcessRegularManager(mainArgs, processExecutor ?: ProcessExecutor.default())
+        ): GitProcessManager =
+            GitProcessRegularManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
     }
 
     class OtherGitSubcommand(name: String) : GitSubcommand(name) {

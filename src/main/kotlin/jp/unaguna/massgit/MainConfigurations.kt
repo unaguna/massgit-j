@@ -34,6 +34,10 @@ class MainConfigurations(
         options.getMarker()?.let { MarkerConditions(it) }
     }
 
+    val gitConfigurations: List<String> by lazy {
+        options.getGitConfig()
+    }
+
     val repSuffix: String? = options.getRepSuffix()
 
     fun subcommandAcceptation(subcommand: String): SubcommandAcceptation {

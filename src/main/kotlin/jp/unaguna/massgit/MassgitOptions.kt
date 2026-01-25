@@ -10,6 +10,7 @@ class MassgitOptions(
 ) : Map<MassgitOptionsDef, List<Option<MassgitOptionsDef>>> by options {
     fun isHelp() = contains(MassgitOptionsDef.HELP)
     fun isVersion() = !isHelp() && contains(MassgitOptionsDef.VERSION)
+    fun getGitConfig() = options.of(MassgitOptionsDef.GIT_CONFIG).map { it.getOneArg() }
     fun getMarker() = options.getOneOrNull(MassgitOptionsDef.MARKER)?.getOneArg()
     fun getRepSuffix() = options.getOneOrNull(MassgitOptionsDef.REP_SUFFIX)?.getOneArg()
 
