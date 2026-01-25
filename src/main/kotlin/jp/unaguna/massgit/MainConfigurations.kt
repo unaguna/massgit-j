@@ -34,7 +34,7 @@ class MainConfigurations(
         options.getMarker()?.let { MarkerConditions(it) }
     }
 
-    val gitConfigurations: List<String> by lazy {
+    val gitConfigurations: List<GitConfig> by lazy {
         options.getGitConfig()
     }
 

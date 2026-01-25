@@ -57,6 +57,9 @@ class MainGitCommandOptionTest {
             arguments(
                 arrayOf("-c", "core.autocrlf=true", "-c", "core.example=1"),
             ),
+            arguments(
+                arrayOf("-c", "core.autocrlf=true", "-c", "core.example=example=2"),
+            ),
         )
     }
 }

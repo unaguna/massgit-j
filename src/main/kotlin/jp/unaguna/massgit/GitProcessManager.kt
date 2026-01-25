@@ -116,7 +116,7 @@ abstract class GitProcessManagerBase(
 
 open class GitProcessRegularManager(
     protected val mainArgs: MainArgs,
-    protected val gitConfigurations: List<String>,
+    protected val gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessManagerBase(processExecutor) {
     final override val cmdTemplate = buildProcessArgs {
@@ -127,7 +127,7 @@ open class GitProcessRegularManager(
         append { r -> listOf(r.dirname) }
         for (gitConfig in gitConfigurations) {
             append("-c")
-            append(gitConfig)
+            append(gitConfig.toStringAsArg())
         }
         append(mainArgs.subCommand.name)
         append(mainArgs.subOptions)
@@ -146,7 +146,7 @@ open class GitProcessRegularManager(
 
 class GitProcessDiffManager(
     mainArgs: MainArgs,
-    gitConfigurations: List<String>,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
@@ -174,7 +174,7 @@ class GitProcessDiffManager(
 
 class GitProcessFilepathManager(
     mainArgs: MainArgs,
-    gitConfigurations: List<String>,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
@@ -183,7 +183,7 @@ class GitProcessFilepathManager(
 
 class GitProcessGrepManager(
     mainArgs: MainArgs,
-    gitConfigurations: List<String>,
+    gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
 ) : GitProcessRegularManager(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
