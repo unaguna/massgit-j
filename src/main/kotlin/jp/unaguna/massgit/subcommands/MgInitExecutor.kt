@@ -75,8 +75,6 @@ class MgInitExecutor(
     }
 
     private fun lookForGitRepos(root: Path = conf.massProjectDir, maxDepth: Int): Sequence<Path> {
-        // TODO: .git が見つかったらその中を無視するようにすることで、高速化を図る
-
         return Files.walk(root, maxDepth)
             .asSequence()
             .filter { it.isDirectory() && it.fileName.toString() == ".git" }
