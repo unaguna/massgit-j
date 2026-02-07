@@ -49,11 +49,11 @@ class MainArgsTest {
 
         @JvmStatic
         fun paramsOfTestSubCommandObject(): Stream<Arguments> = Stream.of(
+            arguments(listOf("pull"), Subcommand.Pull),
             arguments(listOf("grep"), Subcommand.Grep),
             arguments(listOf("diff"), Subcommand.Diff),
             arguments(listOf("ls-files"), Subcommand.LsFiles),
             arguments(listOf("fetch"), Subcommand.OtherGitSubcommand("fetch")),
-            arguments(listOf("pull"), Subcommand.OtherGitSubcommand("pull")),
             arguments(listOf("push"), Subcommand.OtherGitSubcommand("push")),
             arguments(listOf("switch"), Subcommand.OtherGitSubcommand("switch")),
             arguments(listOf("reset"), Subcommand.OtherGitSubcommand("reset")),

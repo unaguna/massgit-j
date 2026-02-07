@@ -87,6 +87,21 @@ sealed class Subcommand(val name: String) {
         }
     }
 
+    object Pull : GitSubcommand("pull") {
+        override fun gitProcessManager(
+            mainArgs: MainArgs,
+            conf: MainConfigurations,
+            processExecutor: ProcessExecutor?
+        ): GitProcessManager {
+            check(mainArgs.subCommand == this)
+            return GitProcessPullManager(
+                mainArgs,
+                conf.gitConfigurations,
+                processExecutor ?: ProcessExecutor.default(),
+            )
+        }
+    }
+
     object Diff : GitSubcommand("diff") {
         override fun gitProcessManager(
             mainArgs: MainArgs,
@@ -173,6 +188,7 @@ sealed class Subcommand(val name: String) {
 
     companion object {
         private val fixedGitSubcommands = mapOf(
+            Pull.name to Pull,
             Diff.name to Diff,
             Grep.name to Grep,
             LsFiles.name to LsFiles,

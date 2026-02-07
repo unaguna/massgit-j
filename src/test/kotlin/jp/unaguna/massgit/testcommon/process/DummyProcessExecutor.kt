@@ -11,9 +11,11 @@ import kotlin.io.path.inputStream
 class DummyProcessExecutor(
     exitCodes: List<Int>,
     stdout: List<Path>? = null,
+    stderr: List<Path>? = null,
 ) : ProcessExecutor {
     val exitCodesStock = ArrayDeque(exitCodes)
     val stdoutStock = if (stdout != null) ArrayDeque(stdout) else null
+    val stderrStock = if (stderr != null) ArrayDeque(stderr) else null
     var executeCount = 0
         private set
     private val commandHistory: MutableList<HistoryLine> = mutableListOf()
@@ -24,10 +26,11 @@ class DummyProcessExecutor(
     ): Process {
         val nextExitCode = exitCodesStock.removeFirstOrNull() ?: 0
         val nextStdout = stdoutStock?.removeFirstOrNull()
+        val nextStderr = stderrStock?.removeFirstOrNull()
         executeCount += 1
         commandHistory.add(HistoryLine(command, workingDir))
 
-        return DummyProcess(nextExitCode, stdout = nextStdout)
+        return DummyProcess(nextExitCode, stdout = nextStdout, stderr = nextStderr)
     }
 
     fun getHistory(index: Int) = commandHistory[index]
@@ -45,9 +48,14 @@ class DummyProcessExecutor(
     class DummyProcess(
         private val exitCode: Int,
         private val stdout: Path? = null,
+        private val stderr: Path? = null,
     ) : Process() {
         private val stdoutStream by lazy {
             stdout?.inputStream() ?: EmptyInputStream()
+        }
+
+        private val stderrStream by lazy {
+            stderr?.inputStream() ?: EmptyInputStream()
         }
 
         override fun getOutputStream(): OutputStream {
@@ -59,7 +67,7 @@ class DummyProcessExecutor(
         }
 
         override fun getErrorStream(): InputStream {
-            return EmptyInputStream()
+            return stderrStream
         }
 
         override fun waitFor(): Int {

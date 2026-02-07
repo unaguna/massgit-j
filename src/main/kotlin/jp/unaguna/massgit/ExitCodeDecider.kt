@@ -1,7 +1,5 @@
 package jp.unaguna.massgit
 
-import jp.unaguna.massgit.common.collection.Either
-
-interface ExitCodeDecider {
-    fun decideExitCode(results: List<Either<Process, Throwable>>): Int
+interface ExitCodeDecider<An> {
+    fun decideExitCode(results: List<GitProcessResult<An>>): Int
 }
