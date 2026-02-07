@@ -8,7 +8,6 @@ import jp.unaguna.massgit.testcommon.stdio.trapStdoutStderr
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class GitProcessManagerPullTest {
@@ -31,13 +30,32 @@ class GitProcessManagerPullTest {
                 println("output something")
             },
         )
+        val eachProcessStderr = listOf(
+            createTempTextFile(tempDir, "stdout") {
+                // stderr is ignored in summary printing
+                println("Already up to date.")
+            },
+            createTempTextFile(tempDir, "stdout") {
+                println("output something")
+            },
+            createTempTextFile(tempDir, "stdout") {
+                // stderr is ignored in summary printing
+                println("Already up to date.")
+            },
+        )
         val expectedStdout = buildStringByPrintStream {
             println("repo0: output something")
             println("repo1: Already up to date.")
             println("repo2: output something")
         }
+        val expectedStderr = buildStringByPrintStream {
+            println("repo0: Already up to date.")
+            println("repo1: output something")
+            println("repo2: Already up to date.")
+            println("Success: 2, Already UP-TO-DATE: 1, Failed: 0, Total: 3")
+        }
 
-        val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout)
+        val processExecutor = DummyProcessExecutor(exitCodes, stdout = eachProcessStdout, stderr = eachProcessStderr)
         val processManager = mainArgs.subCommand!!.gitProcessManager(
             mainArgs,
             conf,
@@ -48,7 +66,7 @@ class GitProcessManagerPullTest {
             processManager.run(repos, massgitBaseDir = tempDir)
         }
         assertEquals(expectedStdout, actualStdout)
-        assertContains(actualStderr, "Success: 2, Already UP-TO-DATE: 1, Failed: 0, Total: 3")
+        assertEquals(actualStderr, expectedStderr)
         assertEquals(repos.size, processExecutor.executeCount)
     }
 }
