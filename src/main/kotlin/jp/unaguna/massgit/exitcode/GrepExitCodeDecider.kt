@@ -4,10 +4,10 @@ import jp.unaguna.massgit.ExitCodeDecider
 import jp.unaguna.massgit.common.collection.Either
 import jp.unaguna.massgit.common.collection.groupByType
 
-class GrepExitCodeDecider : ExitCodeDecider {
+class GrepExitCodeDecider : ExitCodeDecider<Nothing> {
     @Suppress("MagicNumber")
-    override fun decideExitCode(results: List<Either<Process, Throwable>>): Int {
-        val (processes, throwable) = results.groupByType()
+    override fun decideExitCode(results: List<Pair<Either<Process, Throwable>, Nothing?>>): Int {
+        val (processes, throwable) = results.map { it.first }.groupByType()
         val exitCodes = processes.map { p -> p.exitValue() }.toSet()
 
         // If the processes at least one return 0 (found), this doesn't return 1; '1' means 'not found', not 'error'.

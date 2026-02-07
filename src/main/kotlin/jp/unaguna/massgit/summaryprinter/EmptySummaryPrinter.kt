@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory
 /**
  * Summary printer to output only into logging, not into stderr.
  */
-class EmptySummaryPrinter : SummaryPrinter {
-    override fun printSummary(results: List<Either<Process, Throwable>>) {
-        val succeeded = results.count { it.isLeftAnd { p -> p.exitValue() == 0 } }
+class EmptySummaryPrinter<An> : SummaryPrinter<An> {
+    override fun printSummary(results: List<Pair<Either<Process, Throwable>, An?>>) {
+        val succeeded = results.count { it.first.isLeftAnd { p -> p.exitValue() == 0 } }
         val failed = results.size - succeeded
 
         logger.info("Success: {}, Failed: {}, Total: {}", succeeded, failed, results.size)
