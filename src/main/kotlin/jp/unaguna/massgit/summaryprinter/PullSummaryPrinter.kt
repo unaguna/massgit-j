@@ -28,6 +28,6 @@ class PullSummaryPrinter : SummaryPrinter<GitProcessPullManager.PullOutputAnalys
     }
 
     companion object {
-        private val logger by lazy { LoggerFactory.getLogger(RegularSummaryPrinter::class.java) }
+        private val logger by lazy { LoggerFactory.getLogger(PullSummaryPrinter::class.java) }
     }
 }
