@@ -16,7 +16,7 @@ class PullSummaryPrinter : SummaryPrinter<GitProcessPullManager.PullOutputAnalys
         for ((result, analysis) in results) {
             when {
                 result.isRight || result.isLeftAnd { p -> p.exitValue() != 0 } -> failureCount++
-                analysis?.isAlreadyUpToDate == true -> noOpCount++
+                analysis.isAlreadyUpToDate -> noOpCount++
                 else -> successCount++
             }
         }

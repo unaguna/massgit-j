@@ -165,7 +165,7 @@ sealed class Subcommand(val name: String) {
             conf: MainConfigurations,
             processExecutor: ProcessExecutor?
         ): GitProcessManager =
-            GitProcessRegularManager<Nothing>(
+            GitProcessRegularManager(
                 mainArgs,
                 conf.gitConfigurations,
                 processExecutor ?: ProcessExecutor.default(),

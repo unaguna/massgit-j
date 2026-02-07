@@ -33,8 +33,8 @@ abstract class GitProcessManagerBase<An>(
     protected abstract val cmdTemplate: ProcessArgs
     protected open val summaryPrinter: SummaryPrinter<An> = EmptySummaryPrinter()
     protected abstract val exitCodeDecider: ExitCodeDecider<An>
+    protected abstract val outputAnalyzerFactory: OutputAnalyzerFactory<Repo, An>
     protected abstract fun createPrintManager(repo: Repo, outputAnalyzer: OutputAnalyzer<An>?): PrintManager
-    protected open val outputAnalyzerFactory: OutputAnalyzerFactory<Repo, An>? = null
 
     private fun createPrintErrorManager(outputAnalyzer: OutputAnalyzer<An>?, errorFilter: PrintFilter): PrintManager {
         return PrintManagerThrough(
@@ -57,7 +57,7 @@ abstract class GitProcessManagerBase<An>(
         val executionFutures = repos.submitForEach(executor) { repo ->
             logger.trace("Start thread for {}", repo.dirname)
 
-            val outputAnalyzer = outputAnalyzerFactory?.create(repo)
+            val outputAnalyzer = outputAnalyzerFactory.create(repo)
             val errorFilter = errorFilter(repo)
             val threadResult = runCatching {
                 val process = runCatching {
@@ -93,7 +93,7 @@ abstract class GitProcessManagerBase<An>(
             }.getEither()
 
             logger.trace("End thread for {}; result={}", repo.dirname, threadResult)
-            GitProcessResult(threadResult, outputAnalyzer?.getResult())
+            GitProcessResult(threadResult, outputAnalyzer.getResult())
         }
 
         executor.shutdown()
@@ -125,10 +125,10 @@ abstract class GitProcessManagerBase<An>(
 
 data class GitProcessResult<An>(
     val process: Either<Process, Throwable>,
-    val analysis: An?,
+    val analysis: An,
 )
 
-open class GitProcessRegularManager<An>(
+abstract class GitProcessRegularManagerAbstract<An>(
     protected val mainArgs: MainArgs,
     protected val gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
@@ -159,11 +159,23 @@ open class GitProcessRegularManager<An>(
     }
 }
 
+class GitProcessRegularManager(
+    mainArgs: MainArgs,
+    gitConfigurations: List<GitConfig>,
+    processExecutor: ProcessExecutor = ProcessExecutor.default(),
+) : GitProcessRegularManagerAbstract<Unit>(mainArgs, gitConfigurations, processExecutor) {
+    override val outputAnalyzerFactory = OutputAnalyzerDoNothingFactory<Repo>()
+}
+
 class GitProcessPullManager(
     mainArgs: MainArgs,
     gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager<GitProcessPullManager.PullOutputAnalysis>(mainArgs, gitConfigurations, processExecutor) {
+) : GitProcessRegularManagerAbstract<GitProcessPullManager.PullOutputAnalysis>(
+    mainArgs,
+    gitConfigurations,
+    processExecutor,
+) {
     override val summaryPrinter: SummaryPrinter<PullOutputAnalysis> = PullSummaryPrinter()
     override val outputAnalyzerFactory: OutputAnalyzerFactory<Repo, PullOutputAnalysis> = PullOutputAnalyzerFactory()
 
@@ -202,14 +214,16 @@ class GitProcessDiffManager(
     mainArgs: MainArgs,
     gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager<Nothing>(mainArgs, gitConfigurations, processExecutor) {
+) : GitProcessRegularManagerAbstract<Unit>(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: when {
         mainArgs.subOptions.contains("--name-only") -> REP_SUFFIX_PATH_SEP
         else -> REP_SUFFIX_DEFAULT
     }
-    override val summaryPrinter = EmptySummaryPrinter<Nothing>()
+    override val summaryPrinter = EmptySummaryPrinter<Unit>()
 
-    override fun createPrintManager(repo: Repo, outputAnalyzer: OutputAnalyzer<Nothing>?): PrintManager = when {
+    override val outputAnalyzerFactory = OutputAnalyzerDoNothingFactory<Repo>()
+
+    override fun createPrintManager(repo: Repo, outputAnalyzer: OutputAnalyzer<Unit>?): PrintManager = when {
         mainArgs.subOptions.containsAny(
             "--name-only",
             "--numstat",
@@ -232,25 +246,27 @@ class GitProcessFilepathManager(
     mainArgs: MainArgs,
     gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager<Nothing>(mainArgs, gitConfigurations, processExecutor) {
+) : GitProcessRegularManagerAbstract<Unit>(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
-    override val summaryPrinter = EmptySummaryPrinter<Nothing>()
+    override val summaryPrinter = EmptySummaryPrinter<Unit>()
+    override val outputAnalyzerFactory = OutputAnalyzerDoNothingFactory<Repo>()
 }
 
 class GitProcessGrepManager(
     mainArgs: MainArgs,
     gitConfigurations: List<GitConfig>,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessRegularManager<Nothing>(mainArgs, gitConfigurations, processExecutor) {
+) : GitProcessRegularManagerAbstract<Unit>(mainArgs, gitConfigurations, processExecutor) {
     override val repSuffix: String = mainArgs.mainOptions.getRepSuffix() ?: REP_SUFFIX_PATH_SEP
-    override val summaryPrinter = EmptySummaryPrinter<Nothing>()
-    override val exitCodeDecider: ExitCodeDecider<Nothing> = GrepExitCodeDecider()
+    override val summaryPrinter = EmptySummaryPrinter<Unit>()
+    override val exitCodeDecider: ExitCodeDecider<Unit> = GrepExitCodeDecider()
+    override val outputAnalyzerFactory = OutputAnalyzerDoNothingFactory<Repo>()
 }
 
 class CloneProcessManager(
     private val repSuffix: String? = null,
     processExecutor: ProcessExecutor = ProcessExecutor.default(),
-) : GitProcessManagerBase<Nothing>(processExecutor) {
+) : GitProcessManagerBase<Unit>(processExecutor) {
     override val cmdTemplate = buildProcessArgs {
         append("git")
         append("clone")
@@ -261,10 +277,11 @@ class CloneProcessManager(
         }
     }
 
-    override val summaryPrinter = RegularSummaryPrinter<Nothing>()
-    override val exitCodeDecider = RegularExitCodeDecider<Nothing>()
+    override val summaryPrinter = RegularSummaryPrinter<Unit>()
+    override val exitCodeDecider = RegularExitCodeDecider<Unit>()
+    override val outputAnalyzerFactory = OutputAnalyzerDoNothingFactory<Repo>()
 
-    override fun createPrintManager(repo: Repo, outputAnalyzer: OutputAnalyzer<Nothing>?): PrintManager {
+    override fun createPrintManager(repo: Repo, outputAnalyzer: OutputAnalyzer<Unit>?): PrintManager {
         return PrintManagerThrough(
             LineHeadFilter("${repo.dirname}${repSuffix ?: REP_SUFFIX_DEFAULT}"),
             outputAnalyzer = outputAnalyzer?.toStdoutAdapter(),

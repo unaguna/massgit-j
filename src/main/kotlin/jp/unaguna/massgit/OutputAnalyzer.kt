@@ -1,7 +1,11 @@
 package jp.unaguna.massgit
 
 interface OutputAnalyzerFactory<Rp, Rs> {
-    fun create(repo: Rp): OutputAnalyzer<Rs>?
+    fun create(repo: Rp): OutputAnalyzer<Rs>
+}
+
+class OutputAnalyzerDoNothingFactory<Rp> : OutputAnalyzerFactory<Rp, Unit> {
+    override fun create(repo: Rp): OutputAnalyzer<Unit> = OutputAnalyzerDoNothing
 }
 
 interface OutputAnalyzer<Rs> {
@@ -15,6 +19,20 @@ interface OutputAnalyzer<Rs> {
 
     fun toStderrAdapter(): OutputAnalyzerUnitAdapter {
         return OutputAnalyzerStderrAdapter(this)
+    }
+}
+
+object OutputAnalyzerDoNothing : OutputAnalyzer<Unit> {
+    override fun loadStdoutLine(line: String) {
+        // do nothing
+    }
+
+    override fun loadStderrLine(line: String) {
+        // do nothing
+    }
+
+    override fun getResult() {
+        return
     }
 }
 
