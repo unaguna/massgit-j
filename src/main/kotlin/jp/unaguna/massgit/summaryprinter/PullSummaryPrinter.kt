@@ -1,13 +1,13 @@
 package jp.unaguna.massgit.summaryprinter
 
 import jp.unaguna.massgit.GitProcessPullManager
+import jp.unaguna.massgit.GitProcessResult
 import jp.unaguna.massgit.SummaryPrinter
-import jp.unaguna.massgit.common.collection.Either
 import org.slf4j.LoggerFactory
 
 class PullSummaryPrinter : SummaryPrinter<GitProcessPullManager.PullOutputAnalysis> {
     override fun printSummary(
-        results: List<Pair<Either<Process, Throwable>, GitProcessPullManager.PullOutputAnalysis?>>,
+        results: List<GitProcessResult<GitProcessPullManager.PullOutputAnalysis>>,
     ) {
         var successCount = 0
         var noOpCount = 0

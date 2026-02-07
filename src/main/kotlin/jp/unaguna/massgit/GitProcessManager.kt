@@ -1,6 +1,7 @@
 package jp.unaguna.massgit
 
 import jp.unaguna.massgit.common.collection.ClosablePair
+import jp.unaguna.massgit.common.collection.Either
 import jp.unaguna.massgit.common.collection.containsAny
 import jp.unaguna.massgit.common.collection.getEither
 import jp.unaguna.massgit.common.collection.submitForEach
@@ -92,7 +93,7 @@ abstract class GitProcessManagerBase<An>(
             }.getEither()
 
             logger.trace("End thread for {}; result={}", repo.dirname, threadResult)
-            Pair(threadResult, outputAnalyzer?.getResult())
+            GitProcessResult(threadResult, outputAnalyzer?.getResult())
         }
 
         executor.shutdown()
@@ -121,6 +122,11 @@ abstract class GitProcessManagerBase<An>(
         const val REP_SUFFIX_PATH_SEP = "/"
     }
 }
+
+data class GitProcessResult<An>(
+    val process: Either<Process, Throwable>,
+    val analysis: An?,
+)
 
 open class GitProcessRegularManager<An>(
     protected val mainArgs: MainArgs,
