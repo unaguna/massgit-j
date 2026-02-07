@@ -1,6 +1,6 @@
 package jp.unaguna.massgit.printmanager
 
-import jp.unaguna.massgit.OutputAnalyzerUnitAdapter
+import jp.unaguna.massgit.OutputAnalyzer
 import jp.unaguna.massgit.PrintFilter
 import jp.unaguna.massgit.PrintManager
 import java.io.InputStream
@@ -10,7 +10,7 @@ import java.nio.charset.Charset
 
 class PrintManagerThrough(
     private val printFilter: PrintFilter,
-    private val outputAnalyzer: OutputAnalyzerUnitAdapter?,
+    private val outputAnalyzer: OutputAnalyzer.LinesUnitAdapter?,
     private val header: String? = null,
     private val out: PrintStream = System.out,
 ) : PrintManager {
