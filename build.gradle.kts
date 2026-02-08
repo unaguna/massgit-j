@@ -34,7 +34,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 tasks {
@@ -53,6 +53,7 @@ graalvmNative {
         mainClass.set("jp.unaguna.massgit.Main")
         buildArgs.add("--initialize-at-build-time")
         buildArgs.add("-O3")
+        buildArgs.add("-H:+AddAllCharsets")
         resources.includedPatterns.add("massgit-.+\\.properties")
         resources.includedPatterns.add("massgit-.+\\.json")
         resources.includedPatterns.add("logback.xml")

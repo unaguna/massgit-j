@@ -6,6 +6,8 @@ import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.help.HelpDefinition
 import jp.unaguna.massgit.logging.LoggingSetUp
 import org.slf4j.LoggerFactory
+import java.io.PrintStream
+import java.nio.charset.Charset
 import kotlin.system.exitProcess
 
 class Main {
@@ -80,6 +82,8 @@ class Main {
             SystemProp.initialize()
             LoggingSetUp.setUpLogging()
 
+            initializeStdoutStderr()
+
             val mainInstance = Main()
 
             val exitCode = runCatching {
@@ -98,6 +102,28 @@ class Main {
             }.getOrDefault(127)
 
             exitProcess(exitCode)
+        }
+
+        /**
+         * Initialize stdout and stderr
+         *
+         * In native image, standard output and standard error are initialized in UTF-8
+         * regardless of runtime system properties,
+         * so they are reinitialized using the system property's character encoding.
+         */
+        private fun initializeStdoutStderr() {
+            val out = PrintStream(
+                System.out,
+                false,
+                Charset.forName(System.getProperty("stdout.encoding")),
+            )
+            System.setOut(out)
+            val err = PrintStream(
+                System.err,
+                false,
+                Charset.forName(System.getProperty("stderr.encoding")),
+            )
+            System.setErr(err)
         }
     }
 }
