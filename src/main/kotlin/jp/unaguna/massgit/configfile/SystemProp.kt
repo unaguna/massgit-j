@@ -7,6 +7,10 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.toPath
 
 object SystemProp {
+    val executableType: ExecutableType? by lazy {
+        System.getProperty("massgit.executable-type")?.let { ExecutableType.valueOf(it.uppercase()) }
+    }
+
     val systemDir: Path? by lazy {
         System.getProperty("massgit.system-dir")?.let { Path(it) }
     }
@@ -16,6 +20,25 @@ object SystemProp {
     }
 
     fun initialize() {
+        if (System.getProperty("massgit.executable-type") == null) {
+            val codeSource = Main::class.java.protectionDomain.codeSource?.location?.toURI()?.toPath()
+            println(codeSource)
+            println(codeSource?.fileName)
+
+            val executableType = when {
+                codeSource == null -> null
+                codeSource.isDirectory() -> ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".jar") -> ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".exe") -> ExecutableType.EXE
+                else -> null
+            }
+            println(executableType)
+
+            if (executableType != null) {
+                System.setProperty("massgit.executable-type", executableType.name)
+            }
+        }
+
         if (System.getProperty("massgit.system-dir") == null) {
             val systemDir = runCatching {
                 // If launched by executing an EXE file, obtain the path to that file;
@@ -36,5 +59,10 @@ object SystemProp {
                 System.setProperty("massgit.system-dir", systemDir.toString())
             }
         }
+    }
+
+    enum class ExecutableType {
+        EXE,
+        JAVA,
     }
 }

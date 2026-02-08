@@ -8,8 +8,11 @@ import kotlin.reflect.KClass
 
 class Prop(
     defaultUrl: URL? = null,
+    defaultByExecutableTypeUrl: URL? = null,
     systemUrl: URL? = null,
+    systemByExecutableTypeUrl: URL? = null,
     localUrl: URL? = null,
+    localByExecutableTypeUrl: URL? = null,
 ) {
     private val logger = LoggerFactory.getLogger(Prop::class.java)
     private val default: Properties = Properties()
@@ -19,13 +22,37 @@ class Prop(
     private val loader = this.javaClass.classLoader
 
     init {
+        val executableType = SystemProp.executableType?.name?.lowercase()
+
         load(default, defaultUrl ?: loader.getResource("massgit-default.properties"))
+        if (executableType != null) {
+            load(
+                default,
+                defaultByExecutableTypeUrl
+                    ?: loader.getResource("massgit-default-$executableType.properties")
+            )
+        }
+
         load(
             system,
             systemUrl ?: SystemProp.systemDir?.resolve("massgit-system.properties")
                 ?.takeIf { it.exists() }?.toUri()?.toURL(),
         )
+        if (executableType != null) {
+            load(
+                system,
+                systemByExecutableTypeUrl ?: SystemProp.systemDir?.resolve("massgit-system-$executableType.properties")
+                    ?.takeIf { it.exists() }?.toUri()?.toURL(),
+            )
+        }
+
         load(wrapper, localUrl ?: loader.getResource("massgit-local.properties"))
+        if (executableType != null) {
+            load(
+                wrapper,
+                localByExecutableTypeUrl ?: loader.getResource("massgit-local-$executableType.properties")
+            )
+        }
 
         if (logger.isDebugEnabled) {
             propertyNames().asIterator().forEach {
