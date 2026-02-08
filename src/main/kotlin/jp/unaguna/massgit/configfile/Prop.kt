@@ -80,6 +80,8 @@ class Prop(
         class ProhibitedSubcommands(
             cmd: String,
         ) : Key("subcommands.prohibited.$cmd", Boolean::class)
+        object ResetStdoutEncoding : Key("stdout.encoding.reset", Boolean::class)
+        object ResetStderrEncoding : Key("stderr.encoding.reset", Boolean::class)
     }
 
     sealed class KeyPrefix(val propertyPrefix: String, val type: KClass<*> = String::class) {

@@ -15,6 +15,12 @@ class MainConfigurations(
     private val massProjectDirInj: Path? = null,
     private val reposFilePathInj: Path? = null,
 ) {
+    val enableStdoutEncodingReset: Boolean
+        get() = prop.getBoolean(Prop.Key.ResetStdoutEncoding) ?: false
+
+    val enableStderrEncodingReset: Boolean
+        get() = prop.getBoolean(Prop.Key.ResetStderrEncoding) ?: false
+
     val massProjectDir: Path
         get() = massProjectDirInj
             ?: System.getProperty("jp.unaguna.massgit.projectDir")?.let { Path(it) }

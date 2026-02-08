@@ -24,6 +24,9 @@ class Main {
         reposInj: List<Repo>? = null,
         processExecutor: ProcessExecutor? = null,
     ): Int {
+        val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
+        initializeStdoutStderr(conf)
+
         if (mainArgs.mainOptions.isHelp()) {
             val helpDef = HelpDefinition.load()
 
@@ -46,8 +49,6 @@ class Main {
             helpDef.printSection(System.out, "usage", cmd = "massgit")
             return 127
         }
-
-        val conf = confInj ?: MainConfigurations(mainArgs.mainOptions)
 
         // check whether the subcommand is accepted
         when (conf.subcommandAcceptation(mainArgs.subCommand)) {
@@ -75,14 +76,47 @@ class Main {
         println("massgit on java $version")
     }
 
+    /**
+     * Initialize stdout and stderr
+     *
+     * In native image, standard output and standard error are initialized in UTF-8
+     * regardless of runtime system properties,
+     * so they are reinitialized using the system property's character encoding.
+     */
+    private fun initializeStdoutStderr(conf: MainConfigurations) {
+        if (conf.enableStdoutEncodingReset) {
+            val charsetName = System.getProperty("stdout.encoding")
+            val out = PrintStream(
+                System.out,
+                false,
+                Charset.forName(charsetName),
+            )
+            System.setOut(out)
+            logger.debug("Encode of stdout has been reset to {}", charsetName)
+        } else {
+            logger.debug("Encode of stdout is {}", System.out.charset().name())
+        }
+
+        if (conf.enableStderrEncodingReset) {
+            val charsetName = System.getProperty("stderr.encoding")
+            val err = PrintStream(
+                System.err,
+                false,
+                Charset.forName(charsetName),
+            )
+            System.setErr(err)
+            logger.debug("Encode of stderr has been reset to {}", charsetName)
+        } else {
+            logger.debug("Encode of stderr is {}", System.err.charset().name())
+        }
+    }
+
     companion object {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
             SystemProp.initialize()
             LoggingSetUp.setUpLogging()
-
-            initializeStdoutStderr()
 
             val mainInstance = Main()
 
@@ -102,28 +136,6 @@ class Main {
             }.getOrDefault(127)
 
             exitProcess(exitCode)
-        }
-
-        /**
-         * Initialize stdout and stderr
-         *
-         * In native image, standard output and standard error are initialized in UTF-8
-         * regardless of runtime system properties,
-         * so they are reinitialized using the system property's character encoding.
-         */
-        private fun initializeStdoutStderr() {
-            val out = PrintStream(
-                System.out,
-                false,
-                Charset.forName(System.getProperty("stdout.encoding")),
-            )
-            System.setOut(out)
-            val err = PrintStream(
-                System.err,
-                false,
-                Charset.forName(System.getProperty("stderr.encoding")),
-            )
-            System.setErr(err)
         }
     }
 }
