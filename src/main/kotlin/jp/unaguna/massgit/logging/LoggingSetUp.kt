@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory
 import kotlin.io.path.exists
 
 object LoggingSetUp {
-    fun setUpLogging() {
+    fun setUpLogging(systemProp: SystemProp) {
         // CAUTION: Do not call getLogger() until logging configuration is complete
 
         when (val iLoggerFactory = LoggerFactory.getILoggerFactory()) {
-            is LoggerContext -> setUpLogbackLogging(iLoggerFactory)
+            is LoggerContext -> setUpLogbackLogging(iLoggerFactory, systemProp)
             else -> {
                 getLogger().info(
                     "Since logging library other than logback is being used, " +
@@ -22,18 +22,18 @@ object LoggingSetUp {
         }
     }
 
-    private fun setUpLogbackLogging(context: LoggerContext) {
+    private fun setUpLogbackLogging(context: LoggerContext, systemProp: SystemProp) {
         // CAUTION: Do not call getLogger() until logging configuration is complete
 
         // When explicitly specifying settings using the -D option, those settings take precedence.
         // Since it should already be loaded via logback functionality, no action is required.
-        if (SystemProp.logbackConfig != null) {
+        if (systemProp.logbackConfig != null) {
             LoggerFactory.getLogger(LoggingSetUp::class.java)
-                .info("Logback config may be loaded by '-Dlogback.configurationFile=${SystemProp.logbackConfig}'.")
+                .info("Logback config may be loaded by '-Dlogback.configurationFile=${systemProp.logbackConfig}'.")
             return
         }
 
-        val configPath = SystemProp.systemDir?.resolve("logback.xml")
+        val configPath = systemProp.systemDir?.resolve("logback.xml")
         when {
             configPath == null -> {
                 getLogger().info(

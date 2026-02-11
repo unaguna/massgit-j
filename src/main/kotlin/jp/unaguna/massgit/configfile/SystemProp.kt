@@ -6,16 +6,52 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.toPath
 
-object SystemProp {
-    val systemDir: Path? by lazy {
+interface SystemProp {
+    val executableType: ExecutableType?
+    val systemDir: Path?
+    val logbackConfig: Path?
+
+    enum class ExecutableType {
+        EXE,
+        JAVA,
+        ;
+        val nameForFilename = name.lowercase()
+    }
+}
+
+object SystemPropImpl : SystemProp {
+    override val executableType: SystemProp.ExecutableType? by lazy {
+        System.getProperty("massgit.executable-type")?.let { SystemProp.ExecutableType.valueOf(it.uppercase()) }
+    }
+
+    override val systemDir: Path? by lazy {
         System.getProperty("massgit.system-dir")?.let { Path(it) }
     }
 
-    val logbackConfig: Path? by lazy {
+    override val logbackConfig: Path? by lazy {
         System.getProperty("logback.configurationFile")?.let { Path(it) }
     }
 
     fun initialize() {
+        if (System.getProperty("massgit.executable-type") == null) {
+            val codeSource = Main::class.java.protectionDomain.codeSource?.location?.toURI()?.toPath()
+            println(codeSource)
+            println(codeSource?.fileName)
+
+            val executableType = when {
+                codeSource == null -> null
+                codeSource.isDirectory() -> SystemProp.ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".jar") -> SystemProp.ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".exe") -> SystemProp.ExecutableType.EXE
+                else -> null
+            }
+            println(executableType)
+
+            if (executableType != null) {
+                System.setProperty("massgit.executable-type", executableType.name)
+            }
+        }
+
         if (System.getProperty("massgit.system-dir") == null) {
             val systemDir = runCatching {
                 // If launched by executing an EXE file, obtain the path to that file;
