@@ -64,5 +64,7 @@ object SystemProp {
     enum class ExecutableType {
         EXE,
         JAVA,
+        ;
+        val nameForFilename = name.lowercase()
     }
 }
