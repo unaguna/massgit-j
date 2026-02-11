@@ -6,16 +6,29 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.toPath
 
-object SystemProp {
-    val executableType: ExecutableType? by lazy {
-        System.getProperty("massgit.executable-type")?.let { ExecutableType.valueOf(it.uppercase()) }
+interface SystemProp {
+    val executableType: ExecutableType?
+    val systemDir: Path?
+    val logbackConfig: Path?
+
+    enum class ExecutableType {
+        EXE,
+        JAVA,
+        ;
+        val nameForFilename = name.lowercase()
+    }
+}
+
+object SystemPropImpl : SystemProp {
+    override val executableType: SystemProp.ExecutableType? by lazy {
+        System.getProperty("massgit.executable-type")?.let { SystemProp.ExecutableType.valueOf(it.uppercase()) }
     }
 
-    val systemDir: Path? by lazy {
+    override val systemDir: Path? by lazy {
         System.getProperty("massgit.system-dir")?.let { Path(it) }
     }
 
-    val logbackConfig: Path? by lazy {
+    override val logbackConfig: Path? by lazy {
         System.getProperty("logback.configurationFile")?.let { Path(it) }
     }
 
@@ -27,9 +40,9 @@ object SystemProp {
 
             val executableType = when {
                 codeSource == null -> null
-                codeSource.isDirectory() -> ExecutableType.JAVA
-                codeSource.fileName.toString().endsWith(".jar") -> ExecutableType.JAVA
-                codeSource.fileName.toString().endsWith(".exe") -> ExecutableType.EXE
+                codeSource.isDirectory() -> SystemProp.ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".jar") -> SystemProp.ExecutableType.JAVA
+                codeSource.fileName.toString().endsWith(".exe") -> SystemProp.ExecutableType.EXE
                 else -> null
             }
             println(executableType)
@@ -59,12 +72,5 @@ object SystemProp {
                 System.setProperty("massgit.system-dir", systemDir.toString())
             }
         }
-    }
-
-    enum class ExecutableType {
-        EXE,
-        JAVA,
-        ;
-        val nameForFilename = name.lowercase()
     }
 }

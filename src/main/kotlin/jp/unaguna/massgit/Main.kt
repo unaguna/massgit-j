@@ -2,6 +2,7 @@ package jp.unaguna.massgit
 
 import jp.unaguna.massgit.configfile.Repo
 import jp.unaguna.massgit.configfile.SystemProp
+import jp.unaguna.massgit.configfile.SystemPropImpl
 import jp.unaguna.massgit.exception.MassgitException
 import jp.unaguna.massgit.help.HelpDefinition
 import jp.unaguna.massgit.logging.LoggingSetUp
@@ -115,8 +116,8 @@ class Main {
         @Suppress("MagicNumber", "MemberNameEqualsClassName")
         @JvmStatic
         fun main(args: Array<String>) {
-            SystemProp.initialize()
-            LoggingSetUp.setUpLogging()
+            val systemProp: SystemProp = SystemPropImpl.apply { initialize() }
+            LoggingSetUp.setUpLogging(systemProp)
 
             val mainInstance = Main()
 

@@ -9,7 +9,9 @@ import java.util.*
 import kotlin.io.path.exists
 import kotlin.reflect.KClass
 
+@Suppress("LongParameterList")
 class Prop(
+    systemProp: SystemProp = SystemPropImpl,
     defaultUrl: URL? = null,
     defaultByExecutableTypeUrl: URL? = null,
     systemUrl: URL? = null,
@@ -25,24 +27,25 @@ class Prop(
     init {
         val propResources = listOfNotNull(
             Pair(default, MassgitPropertiesDefaultResource(defaultUrl)),
-            SystemProp.executableType?.let {
+            systemProp.executableType?.let {
                 Pair(
                     default,
                     MassgitPropertiesDefaultByExecutableTypeResource(it, defaultByExecutableTypeUrl)
                 )
             },
-            Pair(system, MassgitPropertiesSystemResource(systemUrl)),
-            SystemProp.executableType?.let {
+            Pair(system, MassgitPropertiesSystemResource(systemProp, systemUrl)),
+            systemProp.executableType?.let {
                 Pair(
                     system,
                     MassgitPropertiesSystemByExecutableResource(
                         it,
+                        systemProp,
                         systemByExecutableTypeUrl
                     )
                 )
             },
             Pair(wrapper, MassgitPropertiesLocalResource(localUrl)),
-            SystemProp.executableType?.let {
+            systemProp.executableType?.let {
                 Pair(
                     wrapper,
                     MassgitPropertiesLocalByExecutableTypeResource(
@@ -53,7 +56,7 @@ class Prop(
             },
         )
 
-        if (SystemProp.executableType == null) {
+        if (systemProp.executableType == null) {
             logger.warn(
                 "Massgit properties file by executable type will NOT be loaded; Executable type was not be detected"
             )
@@ -173,26 +176,34 @@ private class MassgitPropertiesDefaultByExecutableTypeResource(
     constructor(executableType: SystemProp.ExecutableType, inject: URL?) : this(executableType, inject?.toResource())
 }
 
-private class MassgitPropertiesSystemResource(inject: InputStreamSource? = null) : MassgitPropertiesResource {
+private class MassgitPropertiesSystemResource(
+    systemProp: SystemProp,
+    inject: InputStreamSource? = null,
+) : MassgitPropertiesResource {
     override val nameForLogging = "system properties"
-    override val resource = inject ?: SystemProp.systemDir?.resolve("massgit-system.properties")?.takeIf {
+    override val resource = inject ?: systemProp.systemDir?.resolve("massgit-system.properties")?.takeIf {
         it.exists()
     }?.toResource()
 
-    constructor(inject: URL?) : this(inject?.toResource())
+    constructor(systemProp: SystemProp, inject: URL?) : this(systemProp, inject?.toResource())
 }
 
 private class MassgitPropertiesSystemByExecutableResource(
     executableType: SystemProp.ExecutableType,
+    systemProp: SystemProp,
     inject: InputStreamSource? = null,
 ) : MassgitPropertiesResource {
     override val nameForLogging = "system properties by executable type"
     override val resource = inject
-        ?: SystemProp.systemDir?.resolve("massgit-system-${executableType.nameForFilename}.properties")?.takeIf {
+        ?: systemProp.systemDir?.resolve("massgit-system-${executableType.nameForFilename}.properties")?.takeIf {
             it.exists()
         }?.toResource()
 
-    constructor(executableType: SystemProp.ExecutableType, inject: URL?) : this(executableType, inject?.toResource())
+    constructor(
+        executableType: SystemProp.ExecutableType,
+        systemProp: SystemProp,
+        inject: URL?,
+    ) : this(executableType, systemProp, inject?.toResource())
 }
 
 private class MassgitPropertiesLocalResource(inject: InputStreamSource? = null) : MassgitPropertiesResource {
