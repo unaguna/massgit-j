@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "jp.unaguna"
-version = "0.8.0"
+version = "0.8.1"
 
 sourceSets {
     main {
