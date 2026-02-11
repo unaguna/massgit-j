@@ -16,7 +16,7 @@ class RepSuffixTest {
         val conf = MainConfigurations(args.mainOptions)
         val gitProcessManager = args.subCommand!!.gitProcessManager(args, conf)
 
-        assertIs<GitProcessRegularManager>(gitProcessManager)
+        assertIs<GitProcessRegularManagerAbstract<*>>(gitProcessManager)
         val actualRepSuffix = gitProcessManager.repSuffix
         assertEquals(expectedRepSuffix, actualRepSuffix)
     }

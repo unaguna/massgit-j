@@ -15,6 +15,7 @@ class SubcommandTest {
     @ParameterizedTest
     @CsvSource(
         value = [
+            "pull",
             "diff",
             "grep",
             "ls-files",

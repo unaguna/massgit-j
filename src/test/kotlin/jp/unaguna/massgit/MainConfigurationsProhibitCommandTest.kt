@@ -35,7 +35,14 @@ class MainConfigurationsProhibitCommandTest {
             println("subcommands.prohibited.cmd2=false")
         }
         val emptyUrl = createTempFile(tempDir, "empty").toUri().toURL()
-        val prop = Prop(propPath.toUri().toURL(), emptyUrl, emptyUrl)
+        val prop = Prop(
+            defaultUrl = propPath.toUri().toURL(),
+            defaultByExecutableTypeUrl = emptyUrl,
+            systemUrl = emptyUrl,
+            systemByExecutableTypeUrl = emptyUrl,
+            localUrl = emptyUrl,
+            localByExecutableTypeUrl = emptyUrl,
+        )
 
         val conf = MainConfigurations(options, prop)
 
