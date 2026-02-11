@@ -35,8 +35,6 @@ object SystemPropImpl : SystemProp {
     fun initialize() {
         if (System.getProperty("massgit.executable-type") == null) {
             val codeSource = Main::class.java.protectionDomain.codeSource?.location?.toURI()?.toPath()
-            println(codeSource)
-            println(codeSource?.fileName)
 
             val executableType = when {
                 codeSource == null -> null
@@ -45,7 +43,6 @@ object SystemPropImpl : SystemProp {
                 codeSource.fileName.toString().endsWith(".exe") -> SystemProp.ExecutableType.EXE
                 else -> null
             }
-            println(executableType)
 
             if (executableType != null) {
                 System.setProperty("massgit.executable-type", executableType.name)
